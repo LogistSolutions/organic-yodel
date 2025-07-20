@@ -1,0 +1,24 @@
+
+# Please enter the commit message for your changes. Lines starting
+# with '#' will be ignored, and an empty message aborts the commit.
+#
+# On branch main
+# Changes to be committed:
+#	new file:   app/layout.tsx
+#	new file:   app/page.tsx
+#	new file:   components.json
+#	new file:   components/AssetpreisKalkulator copy.tsx
+#	new file:   components/AssetpreisKalkulator.tsx
+#	modified:   package-lock.json
+#	modified:   package.json
+#	new file:   postcss.config.js
+#	new file:   public/Logist.Logo.jpg
+#	new file:   public/LogistLogo.png
+#	modified:   src/app/globals.css
+#	new file:   src/components/ui/button.tsx
+#	new file:   src/components/ui/card.tsx
+#	new file:   src/components/ui/input.tsx
+#	new file:   src/components/ui/label.tsx
+#	new file:   src/lib/utils.ts
+#	new file:   tailwind.config.js
+#
