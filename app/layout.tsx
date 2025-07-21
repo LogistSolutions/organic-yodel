@@ -1,5 +1,5 @@
 // app/layout.tsx
-import '../style.css'; // Pfad ggf. anpassen!
+import '../globals.css';   // dort liegen dann Tailwind + Custom-Stile drin
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="de">
