@@ -2,6 +2,7 @@
 import React, { useState } from "react";
 
 export default function AssetpreisKalkulator() {
+  // Startzustand: Felder sind leer
   const [km, setKm] = useState<number | "">("");
   const [quantities, setQuantities] = useState<(number | "")[]>(["", "", "", "", "", ""]);
   const [customerName, setCustomerName] = useState("");
@@ -26,11 +27,13 @@ export default function AssetpreisKalkulator() {
     [1.6, 1.7, 1.9, 2, 2.2, 2.5],
   ];
 
+  // Hilfsfunktion für leere/nicht-Zahlen
   const safeNum = (v: number | "") => (typeof v === "number" && !isNaN(v) ? v : 0);
 
-  const totalQuantity = quantities.reduce((acc, val) => acc + safeNum(val), 0);
+  // Typisierte Reduces!
+  const totalQuantity = quantities.reduce((acc: number, val) => acc + safeNum(val), 0);
   const totalPallets = quantities.reduce(
-    (acc, val, idx) => acc + safeNum(val) / palletUnits[idx],
+    (acc: number, val, idx) => acc + safeNum(val) / palletUnits[idx],
     0
   );
   const roundedPallets = Math.ceil(totalPallets);
@@ -49,11 +52,11 @@ export default function AssetpreisKalkulator() {
   if (roundedPallets >= 7 && kmValue > 450) transportCost += 500;
 
   const totalMaterial = quantities.reduce(
-    (acc, val, idx) => acc + safeNum(val) * packagingMaterial[idx],
+    (acc: number, val, idx) => acc + safeNum(val) * packagingMaterial[idx],
     0
   );
   const totalPackaging = quantities.reduce(
-    (acc, val, idx) => acc + (safeNum(val) * packagingTime[idx] * 40) / 60,
+    (acc: number, val, idx) => acc + (safeNum(val) * packagingTime[idx] * 40) / 60,
     0
   );
   const total = transportCost + totalMaterial + totalPackaging;
@@ -130,7 +133,7 @@ export default function AssetpreisKalkulator() {
 
         {showBanner && (
           <div className="banner-warning">
-            Bei Palettenanzahl ab 26 erhalten Sie ein individuelles Angebot. Bitte senden Sie Ihre Anfrage per E-Mail an <a href="mailto:info@logist.de" style={{ color: "#fff", textDecoration: "underline", fontWeight: 600 }}>info@logist.de</a>.
+            Bei Palettenanzahl ab 26 erhalten Sie ein individuelles Angebot. Bitte senden Sie Ihre Anfrage per E-Mail an <a href="mailto:info@logist.de">info@logist.de</a>.
           </div>
         )}
 
