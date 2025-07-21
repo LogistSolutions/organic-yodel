@@ -2,8 +2,8 @@
 import React, { useState } from "react";
 
 export default function AssetpreisKalkulator() {
-  const [km, setKm] = useState(0);
-  const [quantities, setQuantities] = useState([0, 0, 0, 0, 0, 0]);
+  const [km, setKm] = useState<number | "">("");
+  const [quantities, setQuantities] = useState<(number | "")[]>(["", "", "", "", "", ""]);
   const [customerName, setCustomerName] = useState("");
   const [reference, setReference] = useState("");
   const [submitted, setSubmitted] = useState(false);
@@ -26,9 +26,11 @@ export default function AssetpreisKalkulator() {
     [1.6, 1.7, 1.9, 2, 2.2, 2.5],
   ];
 
-  const totalQuantity = quantities.reduce((acc, val) => acc + val, 0);
+  const safeNum = (v: number | "") => (typeof v === "number" && !isNaN(v) ? v : 0);
+
+  const totalQuantity = quantities.reduce((acc, val) => acc + safeNum(val), 0);
   const totalPallets = quantities.reduce(
-    (acc, val, idx) => acc + val / palletUnits[idx],
+    (acc, val, idx) => acc + safeNum(val) / palletUnits[idx],
     0
   );
   const roundedPallets = Math.ceil(totalPallets);
@@ -39,18 +41,19 @@ export default function AssetpreisKalkulator() {
   else if (roundedPallets <= 6) kmRate = kmRateTable[2][3];
   else kmRate = kmRateTable[3][3];
 
-  const kmAdjusted = km + 70;
+  const kmValue = safeNum(km);
+  const kmAdjusted = kmValue + 70;
   let transportCost = kmAdjusted * kmRate;
-  if (km > 450) transportCost += 100;
+  if (kmValue > 450) transportCost += 100;
   if (roundedPallets >= 7) transportCost += 400;
-  if (roundedPallets >= 7 && km > 450) transportCost += 500;
+  if (roundedPallets >= 7 && kmValue > 450) transportCost += 500;
 
   const totalMaterial = quantities.reduce(
-    (acc, val, idx) => acc + val * packagingMaterial[idx],
+    (acc, val, idx) => acc + safeNum(val) * packagingMaterial[idx],
     0
   );
   const totalPackaging = quantities.reduce(
-    (acc, val, idx) => acc + (val * packagingTime[idx] * 40) / 60,
+    (acc, val, idx) => acc + (safeNum(val) * packagingTime[idx] * 40) / 60,
     0
   );
   const total = transportCost + totalMaterial + totalPackaging;
@@ -63,9 +66,11 @@ export default function AssetpreisKalkulator() {
     setTimeout(() => setSubmitted(false), 3000);
   };
 
+  const showBanner = roundedPallets >= 26;
+
   return (
     <div className="main-container">
-      <div className="logo-wrapper">
+      <div className="logo-wrapper" style={{ marginBottom: '0.3rem' }}>
         <img src="/LogistLogo.png" alt="Firmenlogo" />
       </div>
       <h1>Assetpreis-Kalkulator</h1>
@@ -80,7 +85,7 @@ export default function AssetpreisKalkulator() {
                   min="0"
                   className="input-modern"
                   value={km}
-                  onChange={e => setKm(Number(e.target.value))}
+                  onChange={e => setKm(e.target.value === "" ? "" : Number(e.target.value))}
                   placeholder="z.B. 120"
                 />
               </td>
@@ -96,7 +101,7 @@ export default function AssetpreisKalkulator() {
                     value={quantities[idx]}
                     onChange={e => {
                       const updated = [...quantities];
-                      updated[idx] = Number(e.target.value);
+                      updated[idx] = e.target.value === "" ? "" : Number(e.target.value);
                       setQuantities(updated);
                     }}
                     placeholder="Anzahl"
@@ -122,6 +127,13 @@ export default function AssetpreisKalkulator() {
             </tr>
           </tbody>
         </table>
+
+        {showBanner && (
+          <div className="banner-warning">
+            Bei Palettenanzahl ab 26 erhalten Sie ein individuelles Angebot. Bitte senden Sie Ihre Anfrage per E-Mail an <a href="mailto:info@logist.de" style={{ color: "#fff", textDecoration: "underline", fontWeight: 600 }}>info@logist.de</a>.
+          </div>
+        )}
+
         <div className="input-row">
           <div>
             <label>Kundennamen</label>
@@ -144,9 +156,11 @@ export default function AssetpreisKalkulator() {
             />
           </div>
         </div>
-        <button type="submit" className="cta-btn">
-          Beauftragen
-        </button>
+        {!showBanner && (
+          <button type="submit" className="cta-btn">
+            Beauftragen
+          </button>
+        )}
         {submitted && (
           <div className="success-message">
             Bestellung wurde registriert.
