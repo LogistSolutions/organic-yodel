@@ -1,0 +1,160 @@
+/* --- Reset & Grundlayout --- */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
+  background: #f5f7fa;
+  color: #23272f;
+  min-height: 100vh;
+  line-height: 1.5;
+}
+
+/* --- Header & Logo --- */
+header {
+  display: flex;
+  align-items: center;
+  padding: 32px 0 24px 0;
+  justify-content: center;
+  background: #fff;
+  box-shadow: 0 2px 16px rgba(0,0,0,0.04);
+  margin-bottom: 32px;
+}
+header img {
+  max-height: 56px;
+  margin-right: 28px;
+}
+header .subtitle {
+  font-size: 1.1rem;
+  color: #8a909d;
+  font-weight: 400;
+  margin-left: 10px;
+}
+
+/* --- Hauptcontainer --- */
+.main-container {
+  max-width: 540px;
+  margin: 0 auto;
+  background: #fff;
+  border-radius: 20px;
+  box-shadow: 0 4px 32px rgba(0,0,0,0.10);
+  padding: 40px 36px;
+}
+
+/* --- Überschrift --- */
+h1 {
+  font-size: 2rem;
+  margin-bottom: 28px;
+  font-weight: 800;
+  letter-spacing: -1px;
+}
+
+/* --- Formular & Eingaben --- */
+form {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.form-group {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.form-group label {
+  flex: 2;
+  font-size: 1.04rem;
+  font-weight: 500;
+  color: #3a3a3a;
+}
+
+.form-group input[type="number"],
+.form-group input[type="text"],
+.form-group select {
+  flex: 1;
+  min-width: 90px;
+  padding: 8px 12px;
+  border: 1.5px solid #e3e8f0;
+  border-radius: 8px;
+  font-size: 1rem;
+  background: #f7fafc;
+  transition: border 0.2s;
+}
+
+.form-group input:focus,
+.form-group select:focus {
+  border-color: #295ed9;
+  outline: none;
+}
+
+/* --- Ergebnistabelle --- */
+.result-table {
+  width: 100%;
+  margin: 22px 0 14px 0;
+  border-collapse: separate;
+  border-spacing: 0 8px;
+}
+
+.result-table th,
+.result-table td {
+  background: #f5f7fa;
+  padding: 8px 14px;
+  border-radius: 8px;
+  text-align: left;
+  font-size: 1.02rem;
+}
+
+.result-table th {
+  color: #6a6f7a;
+  font-weight: 700;
+  background: #ecf0f4;
+}
+
+/* --- Button --- */
+button,
+input[type="submit"] {
+  background: linear-gradient(90deg, #295ed9, #43c0f6 90%);
+  color: #fff;
+  font-weight: 700;
+  padding: 11px 0;
+  border: none;
+  border-radius: 10px;
+  font-size: 1.1rem;
+  box-shadow: 0 2px 12px rgba(41, 94, 217, 0.11);
+  cursor: pointer;
+  transition: background 0.18s, transform 0.1s;
+  margin-top: 18px;
+}
+button:hover,
+input[type="submit"]:hover {
+  background: linear-gradient(90deg, #2049a0, #2990be 90%);
+  transform: translateY(-1px) scale(1.02);
+}
+
+/* --- Weitere Styles --- */
+input[type="checkbox"] {
+  accent-color: #295ed9;
+  margin-right: 8px;
+}
+
+::placeholder {
+  color: #b3bacd;
+}
+
+/* --- Responsives Design --- */
+@media (max-width: 650px) {
+  .main-container {
+    padding: 20px 8vw;
+  }
+  .form-group label {
+    font-size: 0.98rem;
+  }
+  h1 {
+    font-size: 1.3rem;
+  }
+}
