@@ -68,45 +68,47 @@ export default function AssetpreisKalkulator() {
         <img
           src="/LogistLogo.png"
           alt="Firmenlogo"
-          className="h-32 w-auto mb-12"
+          className="h-32 w-auto mb-12 drop-shadow-lg"
           style={{ marginTop: "2cm" }}
         />
       </div>
-      <div className="shadow-xl rounded-2xl bg-white mx-auto w-full max-w-3xl px-10 py-10">
-        <h1 className="text-3xl font-extrabold text-center text-gray-900 mb-8 tracking-tight">
+      <div className="shadow-2xl rounded-3xl bg-white mx-auto w-full max-w-3xl px-8 py-12 border border-slate-100">
+        <h1 className="text-4xl font-black text-center text-slate-800 mb-8 tracking-tight">
           Assetpreis-Kalkulator
         </h1>
         <div className="flex flex-col md:flex-row gap-10">
           {/* Linke Seite: Tabelle mit Eingabefeldern */}
           <div className="flex-1">
-            <table className="w-full">
+            <table className="w-full rounded-xl overflow-hidden shadow border border-slate-100">
               <tbody>
-                <tr className="h-12">
-                  <td className="pr-4 align-middle text-right font-medium text-gray-700">km Eingabe</td>
+                <tr className="h-14">
+                  <td className="pr-4 align-middle text-right font-semibold text-slate-700">km Eingabe</td>
                   <td>
                     <input
                       type="number"
                       min="0"
-                      className="w-full border rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500"
+                      className="w-full border-2 border-slate-200 rounded-lg px-4 py-3 bg-slate-50 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition"
                       value={km}
                       onChange={e => setKm(Number(e.target.value))}
+                      placeholder="z.B. 120"
                     />
                   </td>
                 </tr>
                 {assetLabels.map((label, idx) => (
-                  <tr key={idx} className="h-14">
-                    <td className="pr-4 align-middle text-right font-medium text-gray-700">{label}</td>
+                  <tr key={idx} className="h-16">
+                    <td className="pr-4 align-middle text-right font-medium text-slate-700">{label}</td>
                     <td>
                       <input
                         type="number"
                         min="0"
-                        className="w-full border rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500"
+                        className="w-full border-2 border-slate-200 rounded-lg px-4 py-3 bg-slate-50 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition"
                         value={quantities[idx]}
                         onChange={e => {
                           const updated = [...quantities];
                           updated[idx] = Number(e.target.value);
                           setQuantities(updated);
                         }}
+                        placeholder="Anzahl"
                       />
                     </td>
                   </tr>
@@ -116,38 +118,40 @@ export default function AssetpreisKalkulator() {
           </div>
           {/* Rechte Seite: Ergebnisse */}
           <div className="flex-1 flex flex-col justify-center">
-            <table className="w-full text-center border-separate" style={{borderSpacing: "0 1.2em"}}>
+            <table className="w-full text-center border-separate" style={{ borderSpacing: "0 1.2em" }}>
               <tbody>
                 <tr>
-                  <td className="text-gray-500 text-md font-medium">∅ Stückpreis</td>
-                  <td className="text-gray-500 text-md font-medium">Palettenanzahl</td>
-                  <td className="text-gray-500 text-md font-medium">Gesamtpreis netto</td>
+                  <td className="text-slate-500 text-md font-semibold">∅ Stückpreis</td>
+                  <td className="text-slate-500 text-md font-semibold">Palettenanzahl</td>
+                  <td className="text-slate-500 text-md font-semibold">Gesamtpreis netto</td>
                 </tr>
                 <tr>
-                  <td className="font-bold text-2xl text-blue-700">{avgUnitPrice} €</td>
-                  <td className="font-bold text-2xl">{roundedPallets}</td>
-                  <td className="font-bold text-2xl text-green-700">{totalCost} €</td>
+                  <td className="font-black text-2xl text-blue-700">{avgUnitPrice} €</td>
+                  <td className="font-black text-2xl">{roundedPallets}</td>
+                  <td className="font-black text-2xl text-green-700">{totalCost} €</td>
                 </tr>
               </tbody>
             </table>
-            {/* Kundennummer und Referenz direkt unterhalb der Ergebnisse */}
+            {/* Kundendaten */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-8">
               <div>
-                <label className="block mb-1 text-gray-700 font-medium">Kundennamen</label>
+                <label className="block mb-1 text-slate-700 font-semibold">Kundennamen</label>
                 <input
                   type="text"
-                  className="w-full border rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500"
+                  className="w-full border-2 border-slate-200 rounded-lg px-4 py-3 bg-slate-50 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition"
                   value={customerName}
                   onChange={e => setCustomerName(e.target.value)}
+                  placeholder="z.B. Max Mustermann"
                 />
               </div>
               <div>
-                <label className="block mb-1 text-gray-700 font-medium">Referenz</label>
+                <label className="block mb-1 text-slate-700 font-semibold">Referenz</label>
                 <input
                   type="text"
-                  className="w-full border rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500"
+                  className="w-full border-2 border-slate-200 rounded-lg px-4 py-3 bg-slate-50 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition"
                   value={reference}
                   onChange={e => setReference(e.target.value)}
+                  placeholder="z.B. Auftragsnummer"
                 />
               </div>
             </div>
@@ -156,14 +160,14 @@ export default function AssetpreisKalkulator() {
         {/* Button */}
         <div className="flex justify-center mt-10">
           <button
-            className="bg-blue-600 text-white py-3 px-12 rounded-lg font-bold text-lg shadow hover:bg-blue-700 transition"
+            className="bg-gradient-to-r from-blue-600 to-cyan-500 text-white py-3 px-12 rounded-xl font-bold text-lg shadow-lg hover:from-blue-700 hover:to-cyan-600 hover:scale-105 active:scale-100 transition"
             onClick={handleOrder}
           >
             Beauftragen
           </button>
         </div>
         {submitted && (
-          <div className="mt-4 text-center text-green-600 font-semibold text-lg">
+          <div className="success-message text-center text-lg">
             Bestellung wurde registriert.
           </div>
         )}
