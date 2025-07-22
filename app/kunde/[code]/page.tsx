@@ -1,8 +1,7 @@
 import AssetpreisKalkulator from '../../components/AssetpreisKalkulator';
-import config from "../../data/config.json";
+import config from '../../data/config.json';
 import { notFound } from "next/navigation";
 
-// Typisierung direkt in der Funktionssignatur:
 export default function KundePage({ params }: { params: { code: string } }) {
   const kundeConfig = config.kunden[params.code];
   if (!kundeConfig) return notFound();
