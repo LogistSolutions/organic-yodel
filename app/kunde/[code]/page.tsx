@@ -1,8 +1,11 @@
 import AssetpreisKalkulator from '../../components/AssetpreisKalkulator';
-import config from '../../data/config.json';
+import configImport from '../../data/config.json';
 import { notFound } from "next/navigation";
 
-export default function KundePage({ params }: { params: { code: string } }) {
+export default async function KundePage({ params }: { params: { code: string } }) {
+  // configImport ist ein Promise! Also:
+  const config: any = await configImport;
+
   const kundeConfig = config.kunden[params.code];
   if (!kundeConfig) return notFound();
 
