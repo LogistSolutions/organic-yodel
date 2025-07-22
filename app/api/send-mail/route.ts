@@ -6,6 +6,7 @@ export async function POST(req: NextRequest) {
   try {
     const { html, kundenNummer, referenz, empfaengerMail } = await req.json();
 
+    // 1. PDF mit Playwright erzeugen
     const browser = await chromium.launch({
       args: ['--no-sandbox', '--disable-setuid-sandbox'],
     });
@@ -18,15 +19,18 @@ export async function POST(req: NextRequest) {
     });
     await browser.close();
 
+    // 2. Nodemailer Transport für IONOS (Port 465, secure: true!)
     const transporter = nodemailer.createTransport({
       host: process.env.SMTP_HOST,
-      port: Number(process.env.SMTP_PORT || 587),
+      port: Number(process.env.SMTP_PORT),
+      secure: true, // Wichtig für 465!
       auth: {
         user: process.env.SMTP_USER,
         pass: process.env.SMTP_PASS,
       },
     });
 
+    // 3. E-Mail senden
     await transporter.sendMail({
       from: `"Kalkulator" <${process.env.SMTP_USER}>`,
       to: empfaengerMail,

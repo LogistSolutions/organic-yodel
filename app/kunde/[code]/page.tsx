@@ -1,10 +1,14 @@
 import AssetpreisKalkulator from '../../components/AssetpreisKalkulator';
-import config from "../../data/config.json";
 import { notFound } from "next/navigation";
+import fs from "fs";
+import path from "path";
 
-type Params = { params: { code: string } };
+export default function KundePage({ params }: { params: { code: string } }) {
+  // Pfad zur config.json ermitteln:
+  const configPath = path.join(process.cwd(), "app", "data", "config.json");
+  // JSON synchron einlesen (geht serverseitig in Next.js!)
+  const config = JSON.parse(fs.readFileSync(configPath, "utf-8"));
 
-export default function KundePage({ params }: Params) {
   const kundeConfig = config.kunden[params.code];
   if (!kundeConfig) return notFound();
 
