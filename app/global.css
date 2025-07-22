@@ -1,189 +1,262 @@
-@import "tailwindcss/base";
-@import "tailwindcss/components";
-@import "tailwindcss/utilities";
-/* --- Reset & Grundlayout --- */
+:root {
+  --color-bg: #f6f8fb;
+  --color-white: #fff;
+  --color-primary: #1b74e4;
+  --color-primary-dark: #184e92;
+  --color-accent: #42c0f6;
+  --color-border: #e1e7ee;
+  --color-text: #182340;
+  --color-muted: #8aa1c3;
+  --color-shadow: 0 8px 32px rgba(27, 116, 228, 0.08);
+  --radius-xl: 20px;
+  --radius-md: 10px;
+  --radius-sm: 5px;
+}
+
+/* Reset & Body */
 * {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
 }
-
 body {
   font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
-  background: #f5f7fa;
-  color: #23272f;
+  background: var(--color-bg);
+  color: var(--color-text);
   min-height: 100vh;
-  line-height: 1.5;
-}
-
-/* --- Header & Logo --- */
-header {
+  letter-spacing: -.01em;
+  font-smooth: always;
   display: flex;
-  align-items: center;
-  padding: 32px 0 24px 0;
   justify-content: center;
-  background: #fff;
-  box-shadow: 0 2px 16px rgba(0,0,0,0.04);
-  margin-bottom: 32px;
-}
-header img {
-  max-height: 56px;
-  margin-right: 28px;
-}
-header .subtitle {
-  font-size: 1.1rem;
-  color: #8a909d;
-  font-weight: 400;
-  margin-left: 10px;
+  align-items: flex-start;
 }
 
-/* --- Hauptcontainer --- */
+/* Hauptcontainer mittig */
 .main-container {
+  background: var(--color-white);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--color-shadow);
+  width: 100%;
   max-width: 540px;
-  margin: 0 auto;
-  background: #fff;
-  border-radius: 20px;
-  box-shadow: 0 4px 32px rgba(0,0,0,0.10);
-  padding: 40px 36px;
-}
-
-/* --- Überschrift --- */
-h1 {
-  font-size: 2rem;
-  margin-bottom: 28px;
-  font-weight: 800;
-  letter-spacing: -1px;
-}
-
-/* --- Formular & Eingaben --- */
-form {
+  margin: 40px auto 40px auto;
+  padding: 44px 34px;
   display: flex;
   flex-direction: column;
-  gap: 24px;
+  align-items: center;
+  text-align: center; /* Neu: zentriert alles außer Tabellen/Inputs */
 }
 
-.form-group {
+.logo-wrapper {
   display: flex;
+  justify-content: center;
   align-items: center;
-  justify-content: space-between;
+  margin-bottom: 1.2rem;
+}
+.logo-wrapper img {
+  max-height: 64px;
+  max-width: 210px;
+}
+
+/* Headings */
+h1 {
+  font-size: 2.1rem;
+  font-weight: 900;
+  color: var(--color-primary);
+  text-align: center;
+  letter-spacing: -1px;
   margin-bottom: 10px;
 }
-
-.form-group label {
-  flex: 2;
-  font-size: 1.04rem;
+h1 span {
+  font-size: 1.12rem;
+  color: #888;
   font-weight: 500;
-  color: #3a3a3a;
+  letter-spacing: 0;
+  display: block;
+  margin-top: 6px;
+}
+legend {
+  color: var(--color-accent);
+  font-weight: 700;
+  margin-bottom: 8px;
+  letter-spacing: -.02em;
+  font-size: 1.08rem;
+  text-align: center;
 }
 
-.form-group input[type="number"],
-.form-group input[type="text"],
-.form-group select {
-  flex: 1;
-  min-width: 90px;
-  padding: 8px 12px;
-  border: 1.5px solid #e3e8f0;
-  border-radius: 8px;
-  font-size: 1rem;
-  background: #f7fafc;
-  transition: border 0.2s;
+/* Fieldset zentriert */
+fieldset {
+  border: none;
+  background: #f6f7fa;
+  padding: 22px 18px 12px 18px;
+  border-radius: var(--radius-md);
+  margin-bottom: 26px;
+  text-align: center;
 }
 
-.form-group input:focus,
-.form-group select:focus {
-  border-color: #295ed9;
-  outline: none;
+/* Tabellen */
+.form-table {
+  width: 100%;
+  margin-bottom: 24px;
+  text-align: center;
+}
+.form-label {
+  font-weight: 600;
+  color: var(--color-primary-dark);
+  font-size: 1.04rem;
+  padding-right: 8px;
+  text-align: left; /* Eingabe-Titel links */
 }
 
-/* --- Ergebnistabelle --- */
 .result-table {
   width: 100%;
   margin: 22px 0 14px 0;
   border-collapse: separate;
   border-spacing: 0 8px;
+  font-size: 1.04rem;
+  text-align: center;
 }
-
 .result-table th,
 .result-table td {
-  background: #f5f7fa;
-  padding: 8px 14px;
-  border-radius: 8px;
-  text-align: left;
-  font-size: 1.02rem;
+  background: #f7fafd;
+  padding: 10px 16px;
+  border-radius: var(--radius-sm);
+  text-align: center; /* Ergebnisse mittig */
 }
-
 .result-table th {
   color: #6a6f7a;
   font-weight: 700;
-  background: #ecf0f4;
+  background: #eef2f7;
+}
+.result-table tr:hover td {
+  background: #edf5fb;
+}
+.highlight.blue {
+  color: var(--color-primary);
+  font-weight: bold;
+}
+.highlight.green {
+  color: #18a272;
+  font-weight: bold;
 }
 
-/* --- Button --- */
+/* Inputfields */
+input, select, textarea {
+  font-family: inherit;
+  padding: 11px 13px;
+  font-size: 1.05rem;
+  border-radius: var(--radius-md);
+  border: 1.7px solid var(--color-border);
+  background: #f8fafc;
+  color: var(--color-text);
+  margin-bottom: 18px;
+  outline: none;
+  transition: border 0.18s, box-shadow 0.18s;
+  text-align: left;
+  width: 100%;
+}
+input:focus, select:focus, textarea:focus {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 2px #1b74e418;
+}
+::placeholder { color: #a9b3be; }
+
+/* --- Referenzfeld Spezial-Styling --- */
+.ref-row {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  margin-bottom: 28px;
+  margin-top: 14px;
+  justify-content: center; /* zentriert die row selbst */
+}
+.ref-row label {
+  min-width: 95px;
+  margin-bottom: 0;
+  font-weight: 600;
+  color: var(--color-primary-dark);
+  font-size: 1.04rem;
+  display: flex;
+  align-items: center;
+  height: 38px;
+  justify-content: flex-end; /* label rechtsbündig */
+  text-align: right;
+}
+.ref-row input {
+  flex: 1;
+  min-width: 160px;
+  margin-left: 0;
+  margin-bottom: 0;
+  height: 38px;
+  display: flex;
+  align-items: center;
+  text-align: left;
+}
+
+/* Button */
 button,
 input[type="submit"] {
-  background: linear-gradient(90deg, #295ed9, #43c0f6 90%);
+  background: linear-gradient(90deg, var(--color-primary), var(--color-accent) 90%);
   color: #fff;
   font-weight: 700;
-  padding: 11px 0;
+  padding: 13px 0;
   border: none;
-  border-radius: 10px;
-  font-size: 1.1rem;
-  box-shadow: 0 2px 12px rgba(41, 94, 217, 0.11);
+  border-radius: var(--radius-md);
+  font-size: 1.13rem;
+  box-shadow: 0 2px 12px rgba(27,116,228, 0.13);
   cursor: pointer;
-  transition: background 0.18s, transform 0.1s;
-  margin-top: 18px;
+  transition: background 0.15s, transform 0.09s;
+  margin-top: 16px;
+  width: 100%;
 }
 button:hover,
 input[type="submit"]:hover {
-  background: linear-gradient(90deg, #2049a0, #2990be 90%);
+  background: linear-gradient(90deg, var(--color-primary-dark), var(--color-primary) 90%);
   transform: translateY(-1px) scale(1.02);
 }
-
-/* === Assetpreis-Kalkulator Extras === */
-
-input[type="number"], input[type="text"] {
-  transition: border 0.2s, box-shadow 0.2s;
+.cta-btn {
+  background: linear-gradient(90deg, #42c0f6 10%, #1b74e4 100%);
+  color: #fff;
+  border-radius: var(--radius-md);
+  padding: 11px 0;
+  font-weight: 700;
+  font-size: 1.1rem;
+  border: none;
+  margin-top: 0;
+  box-shadow: 0 2px 10px rgba(67, 192, 246, 0.08);
 }
-input[type="number"]:focus, input[type="text"]:focus {
-  border-color: #2563eb;
-  box-shadow: 0 0 0 2px #2563eb22;
+.cta-btn:hover {
+  background: linear-gradient(90deg, #1b74e4 80%, #42c0f6 100%);
 }
 
-table tr:hover td {
-  background: #f3f6fa;
-  transition: background 0.15s;
-}
-
+/* Extras */
 .success-message {
   background: linear-gradient(90deg, #bbf7d0, #6ee7b7 70%);
   color: #166534 !important;
   padding: 12px 0;
-  border-radius: 10px;
+  border-radius: var(--radius-md);
   font-weight: 600;
   margin-top: 1.5rem;
   box-shadow: 0 2px 12px #16653422;
+  text-align: center;
 }
-
-
-/* --- Weitere Styles --- */
 input[type="checkbox"] {
-  accent-color: #295ed9;
+  accent-color: var(--color-primary);
   margin-right: 8px;
 }
-
-::placeholder {
-  color: #b3bacd;
+.banner-warning {
+  background: linear-gradient(90deg, #fef9c3, #fde68a 70%);
+  color: #b45309;
+  padding: 12px 18px;
+  border-radius: 10px;
+  font-weight: 600;
+  margin-bottom: 14px;
+  box-shadow: 0 2px 12px #f59e4211;
+  text-align: center;
 }
 
-/* --- Responsives Design --- */
-@media (max-width: 650px) {
+@media (max-width: 700px) {
   .main-container {
-    padding: 20px 8vw;
+    padding: 18px 3vw;
   }
-  .form-group label {
-    font-size: 0.98rem;
-  }
-  h1 {
-    font-size: 1.3rem;
-  }
+  h1 { font-size: 1.4rem; }
 }

@@ -1,6 +1,13 @@
 {
   "kunden": {
     "555888": {
+    "auftraggeber": {
+    "firmenname": "Firma XY GmbH",
+    "strasse": "Hauptstraße 12",
+    "plz": "12345",
+    "ort": "Berlin",
+    "land": "Deutschland"
+  },
       "labels": [
         "Typ X (leicht)",
         "Typ Y (mittel)",
@@ -10,7 +17,7 @@
         "Typ S"
       ],
       "palletUnits": [
-        420,
+        220,
         180,
         70,
         40,
@@ -71,6 +78,13 @@
       }
     },
     "789101": {
+    "auftraggeber": {
+    "firmenname": "Firma XY GmbH",
+    "strasse": "Hauptstraße 12",
+    "plz": "12345",
+    "ort": "Berlin",
+    "land": "Deutschland"
+  },
       "labels": [
         "Kategorie A",
         "Kategorie B",
@@ -141,6 +155,13 @@
       }
     },
     "1234567": {
+    "auftraggeber": {
+    "firmenname": "Firma XY GmbH",
+    "strasse": "Hauptstraße 12",
+    "plz": "12345",
+    "ort": "Berlin",
+    "land": "Deutschland"
+  },
       "labels": [
         "0–1 kg (Mobiles/Accesspoints/Telefone/Dockings etc.)",
         "1–3 kg (Notebooks/Pads/ThinClients etc.)",

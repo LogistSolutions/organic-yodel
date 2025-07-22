@@ -1,361 +1,411 @@
 "use client";
-import { useState } from "react";
+import React, { useState } from "react";
+import configJson from "../data/config.json";
 
-// Passwort hart codiert
-const ADMIN_PASSWORD = "ManuelistderbesteLarskannsowasnicht";
+type Kunde = {
+  labels: string[];
+  palletUnits: number[];
+  packagingMaterial: number[];
+  packagingTime: number[];
+  preise: { kmRateTable: number[][] };
+  auftraggeber?: {
+    firmenname?: string;
+    strasse?: string;
+    plz?: string;
+    ort?: string;
+    land?: string;
+  };
+};
 
-function pretty(obj: object) {
-  return JSON.stringify(obj, null, 2);
+type Config = {
+  kunden: { [kundennummer: string]: Kunde };
+};
+
+const initialConfig: Config = configJson as Config;
+const ADMIN_PW = "GROSS";
+
+function leeresKundeObjekt(): Kunde {
+  return {
+    labels: ["Label 1", "Label 2", "Label 3", "Label 4", "Label 5", "Label 6"],
+    palletUnits: [0, 0, 0, 0, 0, 0],
+    packagingMaterial: [0, 0, 0, 0, 0, 0],
+    packagingTime: [0, 0, 0, 0, 0, 0],
+    preise: { kmRateTable: [[0,0,0,0,0,0],[0,0,0,0,0,0],[0,0,0,0,0,0],[0,0,0,0,0,0]] },
+    auftraggeber: { firmenname: "", strasse: "", plz: "", ort: "", land: "" }
+  }
 }
 
 export default function AdminPage() {
-  const [inputPassword, setInputPassword] = useState("");
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [config, setConfig] = useState<string | null>(null);
-  const [message, setMessage] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
-  const [editMode, setEditMode] = useState<string | false>(false);
-  const [editFields, setEditFields] = useState<any>({});
-  const [commitLoading, setCommitLoading] = useState(false);
+  const [eingeloggt, setEingeloggt] = useState(false);
+  const [pw, setPw] = useState("");
+  const [pwError, setPwError] = useState(false);
 
-  // Config laden
-  async function loadConfig() {
-    setIsLoading(true);
-    try {
-      const res = await fetch("/api/config", { cache: "no-store" });
-      if (!res.ok) throw new Error("Config nicht gefunden.");
-      const data = await res.json();
-      setConfig(pretty(data));
-      setMessage("");
-    } catch (e: any) {
-      setMessage("Fehler beim Laden der Config: " + e.message);
-    }
-    setIsLoading(false);
-  }
+  const [config, setConfig] = useState<Config>(initialConfig);
+  const [neueKundennr, setNeueKundennr] = useState("");
+  const [selected, setSelected] = useState<string | null>(null);
 
-  // Admin-Login
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (inputPassword === ADMIN_PASSWORD) {
-      setIsAuthenticated(true);
-      await loadConfig();
-    } else {
-      setMessage("Falsches Passwort!");
-    }
-  };
-
-  // Kunde speichern (lokal, nicht zu GitHub)
-  const handleEditSave = async () => {
-    try {
-      const configObj = JSON.parse(config ?? "");
-      configObj.kunden[editMode as string] = { ...editFields };
-      // Lokal speichern (optional, wenn du die /api/config API nutzt, sonst kann diese Funktion leer sein)
-      const res = await fetch("/api/config", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(configObj),
-      });
-      if (!res.ok) {
-        setMessage("Fehler beim lokalen Speichern!");
-      } else {
-        setConfig(JSON.stringify(configObj, null, 2));
-        setMessage("Lokal gespeichert. Noch nicht zu GitHub übertragen!");
-        setEditMode(false);
+  const handleValueChange = (
+    kundennummer: string,
+    field: keyof Kunde,
+    idx: number,
+    value: string
+  ) => {
+    setConfig(prev => ({
+      ...prev,
+      kunden: {
+        ...prev.kunden,
+        [kundennummer]: {
+          ...prev.kunden[kundennummer],
+          [field]: (prev.kunden[kundennummer][field] as any[]).map((v, i) =>
+            i === idx ? (field === "labels" ? value : Number(value)) : v
+          ),
+        }
       }
-    } catch (e: any) {
-      setMessage("Fehler: " + e.message);
-    }
+    }));
   };
 
-  // Zu GitHub committen
-  const handleEditCommit = async () => {
-    setCommitLoading(true);
-    try {
-      const configObj = JSON.parse(config ?? "");
-      configObj.kunden[editMode as string] = { ...editFields };
-      const res = await fetch("/api/pushconfig", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(configObj),
-      });
-      if (!res.ok) {
-        const error = await res.json();
-        setMessage("Fehler beim GitHub-Commit: " + (error?.error || ""));
-      } else {
-        setConfig(JSON.stringify(configObj, null, 2));
-        setMessage("Erfolgreich zu GitHub übertragen! Die Seite wird in Kürze automatisch neu gebaut.");
-        setEditMode(false);
+  const handleAuftraggeberChange = (
+    kundennummer: string,
+    subfield: string,
+    value: string
+  ) => {
+    setConfig(prev => ({
+      ...prev,
+      kunden: {
+        ...prev.kunden,
+        [kundennummer]: {
+          ...prev.kunden[kundennummer],
+          auftraggeber: {
+            ...(prev.kunden[kundennummer].auftraggeber || {}),
+            [subfield]: value,
+          },
+        },
+      },
+    }));
+  };
+
+  const handlePreisChange = (
+    kundennummer: string,
+    row: number,
+    col: number,
+    value: string
+  ) => {
+    setConfig(prev => ({
+      ...prev,
+      kunden: {
+        ...prev.kunden,
+        [kundennummer]: {
+          ...prev.kunden[kundennummer],
+          preise: {
+            ...prev.kunden[kundennummer].preise,
+            kmRateTable: prev.kunden[kundennummer].preise.kmRateTable.map(
+              (arr, rIdx) =>
+                rIdx === row
+                  ? arr.map((v, cIdx) =>
+                      cIdx === col ? Number(value) : v
+                    )
+                  : arr
+            )
+          }
+        }
       }
-    } catch (e: any) {
-      setMessage("Fehler: " + e.message);
-    }
-    setCommitLoading(false);
+    }));
   };
 
-  if (!isAuthenticated) {
+  const handleDeleteKunde = (nr: string) => {
+    if (!window.confirm(`Kunde ${nr} wirklich löschen?`)) return;
+    setConfig(prev => {
+      const neu = { ...prev.kunden };
+      delete neu[nr];
+      return { ...prev, kunden: neu };
+    });
+    setSelected(null);
+  };
+
+  const handleAddKunde = () => {
+    if (!neueKundennr || config.kunden[neueKundennr]) {
+      alert("Bitte eine eindeutige Kundennummer eingeben!");
+      return;
+    }
+    setConfig(prev => ({
+      ...prev,
+      kunden: {
+        ...prev.kunden,
+        [neueKundennr]: leeresKundeObjekt(),
+      }
+    }));
+    setSelected(neueKundennr);
+    setNeueKundennr("");
+  };
+
+  const handleExport = () => {
+    const blob = new Blob(
+      [JSON.stringify(config, null, 2)],
+      { type: "application/json" }
+    );
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "config.json";
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  // Passwortschutz
+  if (!eingeloggt) {
     return (
-      <div className="main-container" style={{ maxWidth: 420 }}>
+      <div className="main-container" style={{ maxWidth: 420, marginTop: 50 }}>
         <h1>Admin Login</h1>
-        <form onSubmit={handleLogin}>
-          <label style={{ fontWeight: 600, color: "#e74027" }}>
-            Passwort
-          </label>
-          <input
-            type="password"
-            className="input-modern"
-            placeholder="Admin Passwort"
-            value={inputPassword}
-            onChange={e => {
-              setInputPassword(e.target.value);
-              setMessage("");
-            }}
-            style={{ width: "100%", marginTop: 12, marginBottom: 12 }}
-          />
-          <button type="submit" className="cta-btn" style={{ marginTop: 8 }}>
-            Einloggen
-          </button>
-          {message && <div style={{ color: "#e74027", marginTop: 10 }}>{message}</div>}
-        </form>
-      </div>
-    );
-  }
-
-  // Tabellenansicht
-  if (config && !editMode) {
-    const kundenObj = JSON.parse(config).kunden;
-    return (
-      <div className="main-container" style={{ maxWidth: 900 }}>
-        <h1>Adminbereich</h1>
-        <p style={{ color: "#232323", fontWeight: 600, marginBottom: 18 }}>
-          Alle Kunden-Konfigurationen:
-        </p>
-        {message && <div style={{ color: "#e74027", margin: "0 0 16px 0" }}>{message}</div>}
-        {isLoading && <div style={{ color: "#e74027", margin: "0 0 16px 0" }}>Lade Daten ...</div>}
-        <table style={{ width: "100%", borderCollapse: "collapse", marginBottom: 24 }}>
-          <thead>
-            <tr style={{ background: "#fafafa" }}>
-              <th style={{ textAlign: "left", padding: 8, borderBottom: "1.5px solid #ededed" }}>Kundennummer</th>
-              <th style={{ textAlign: "left", padding: 8, borderBottom: "1.5px solid #ededed" }}>Labels (Auszug)</th>
-              <th style={{ textAlign: "left", padding: 8, borderBottom: "1.5px solid #ededed" }}>Paletten-Einheiten</th>
-              <th style={{ textAlign: "left", padding: 8, borderBottom: "1.5px solid #ededed" }}>Aktionen</th>
-            </tr>
-          </thead>
-          <tbody>
-            {Object.entries(kundenObj).map(([kundennr, kunde]: any) => (
-              <tr key={kundennr} style={{ borderBottom: "1px solid #eee" }}>
-                <td style={{ padding: 8, fontWeight: 600, color: "#e74027" }}>{kundennr}</td>
-                <td style={{ padding: 8, color: "#232323" }}>
-                  {kunde.labels?.slice(0,2).join(", ")}{kunde.labels.length > 2 ? "..." : ""}
-                </td>
-                <td style={{ padding: 8, color: "#222" }}>{kunde.palletUnits?.join(", ")}</td>
-                <td style={{ padding: 8 }}>
-                  <button
-                    className="cta-btn"
-                    style={{ fontSize: 13, padding: "7px 16px", marginRight: 7 }}
-                    onClick={() => {
-                      setEditMode(kundennr);
-                      setMessage("");
-                      setEditFields({ ...kunde });
-                    }}
-                    type="button"
-                  >
-                    Bearbeiten
-                  </button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-        <button
-          className="cta-btn"
-          style={{ background: "#888", color: "#fff", marginTop: 0 }}
-          onClick={loadConfig}
-          type="button"
-        >
-          Neu laden
-        </button>
-      </div>
-    );
-  }
-
-  // Einzelkunden-Bearbeitung (Formular)
-  if (config && editMode) {
-    return (
-      <div className="main-container" style={{ maxWidth: 700 }}>
-        <h2 style={{ fontSize: 21, color: "#e74027", marginTop: 0 }}>
-          Kunde <span style={{ fontWeight: 900 }}>{editMode}</span> bearbeiten
-        </h2>
         <form
           onSubmit={e => {
             e.preventDefault();
-            // Standardmäßig speichern wir erstmal lokal.
-            handleEditSave();
+            if (pw === ADMIN_PW) {
+              setEingeloggt(true);
+              setPwError(false);
+            } else {
+              setPwError(true);
+            }
           }}
         >
-          <label style={{ fontWeight: 600, marginBottom: 6 }}>Labels (Kommagetrennt)</label>
           <input
-            type="text"
-            value={editFields.labels?.join(", ") ?? ""}
-            onChange={e =>
-              setEditFields((f: any) => ({
-                ...f,
-                labels: e.target.value.split(",").map((l: string) => l.trim()),
-              }))
-            }
+            type="password"
+            placeholder="Admin-Passwort"
+            value={pw}
+            onChange={e => setPw(e.target.value)}
             style={{
               width: "100%",
-              marginBottom: 14,
-              padding: 8,
-              borderRadius: 6,
-              border: "1.2px solid #ededed"
+              marginBottom: 16,
+              border: pwError ? "2px solid #f56b6b" : undefined,
+              background: pwError ? "#fff0f0" : undefined,
             }}
           />
-          <label style={{ fontWeight: 600, marginBottom: 6 }}>Paletten-Einheiten (Kommagetrennt)</label>
-          <input
-            type="text"
-            value={editFields.palletUnits?.join(", ") ?? ""}
-            onChange={e =>
-              setEditFields((f: any) => ({
-                ...f,
-                palletUnits: e.target.value
-                  .split(",")
-                  .map((n: string) => Number(n.trim()))
-                  .filter((n: number) => !isNaN(n)),
-              }))
-            }
-            style={{
-              width: "100%",
-              marginBottom: 14,
-              padding: 8,
-              borderRadius: 6,
-              border: "1.2px solid #ededed"
-            }}
-          />
-          <label style={{ fontWeight: 600, marginBottom: 6 }}>Verpackungsmaterial (Kommagetrennt)</label>
-          <input
-            type="text"
-            value={editFields.packagingMaterial?.join(", ") ?? ""}
-            onChange={e =>
-              setEditFields((f: any) => ({
-                ...f,
-                packagingMaterial: e.target.value
-                  .split(",")
-                  .map((n: string) => Number(n.trim()))
-                  .filter((n: number) => !isNaN(n)),
-              }))
-            }
-            style={{
-              width: "100%",
-              marginBottom: 14,
-              padding: 8,
-              borderRadius: 6,
-              border: "1.2px solid #ededed"
-            }}
-          />
-          <label style={{ fontWeight: 600, marginBottom: 6 }}>Verpackungszeit (Kommagetrennt)</label>
-          <input
-            type="text"
-            value={editFields.packagingTime?.join(", ") ?? ""}
-            onChange={e =>
-              setEditFields((f: any) => ({
-                ...f,
-                packagingTime: e.target.value
-                  .split(",")
-                  .map((n: string) => Number(n.trim()))
-                  .filter((n: number) => !isNaN(n)),
-              }))
-            }
-            style={{
-              width: "100%",
-              marginBottom: 14,
-              padding: 8,
-              borderRadius: 6,
-              border: "1.2px solid #ededed"
-            }}
-          />
-          <label style={{ fontWeight: 600, marginBottom: 6 }}>kmRateTable (Kommagetrennte Werte pro Zeile; z.B. 1.2,1.4,1.6,1.75,2,2.2)</label>
-          <textarea
-            value={
-              editFields.preise?.kmRateTable
-                ? editFields.preise.kmRateTable.map((row: any) => row.join(",")).join("\n")
-                : ""
-            }
-            onChange={e => {
-              const rows = e.target.value
-                .split("\n")
-                .map(row =>
-                  row
-                    .split(",")
-                    .map(v => Number(v.trim()))
-                    .filter(n => !isNaN(n))
-                )
-                .filter(r => r.length > 0);
-              setEditFields((f: any) => ({
-                ...f,
-                preise: { ...f.preise, kmRateTable: rows },
-              }));
-            }}
-            style={{
-              width: "100%",
-              minHeight: 80,
-              fontFamily: "monospace",
-              fontSize: 14,
-              background: "#f4f3f3",
-              borderRadius: 8,
-              border: "1.2px solid #ededed",
-              padding: 10,
-              marginBottom: 16
-            }}
-          />
-          <div style={{ display: "flex", gap: 12, marginTop: 12 }}>
-            <button className="cta-btn" style={{ flex: 1 }} type="submit">
-              Speichern (lokal)
-            </button>
-            <button
-              className="cta-btn"
-              style={{
-                flex: 1,
-                background: "#2663eb",
-                color: "#fff",
-                fontWeight: 600
-              }}
-              type="button"
-              onClick={handleEditCommit}
-              disabled={commitLoading}
-            >
-              {commitLoading ? "Commit zu GitHub ..." : "Jetzt zu GitHub committen"}
-            </button>
-            <button
-              className="cta-btn"
-              style={{
-                flex: 1,
-                background: "#aaa",
-                color: "#fff",
-                fontWeight: 600
-              }}
-              type="button"
-              onClick={() => setEditMode(false)}
-            >
-              Abbrechen
-            </button>
-          </div>
-          <div style={{ fontSize: 13, marginTop: 10, color: "#222" }}>
-            <span>
-              <b>Hinweis:</b> Nur mit „Jetzt zu GitHub committen“ wird die Änderung wirklich dauerhaft in dein Repository übertragen und auf der Seite veröffentlicht!
-            </span>
-          </div>
-          {message && <div style={{ color: "#e74027", marginTop: 10 }}>{message}</div>}
+          <button type="submit" style={{ width: "100%" }}>
+            Login
+          </button>
+          {pwError && (
+            <div style={{ color: "#f56b6b", marginTop: 10 }}>
+              Falsches Passwort!
+            </div>
+          )}
         </form>
       </div>
     );
   }
 
-  // Fallback
+  // Übersicht & Detailansicht
   return (
-    <div className="main-container" style={{ maxWidth: 420 }}>
-      <h1>Adminbereich</h1>
-      <p>Keine Daten geladen.</p>
-      <button className="cta-btn" onClick={loadConfig}>Neu laden</button>
+    <div className="main-container" style={{ maxWidth: 1000, marginTop: 30 }}>
+      <h1>Admin: Kundenverwaltung</h1>
+      <div style={{ display: "flex", gap: 12, alignItems: "center", marginBottom: 20 }}>
+        <input
+          placeholder="Neue Kundennummer"
+          value={neueKundennr}
+          onChange={e => setNeueKundennr(e.target.value.replace(/[^0-9]/g, ""))}
+          style={{ width: 160 }}
+        />
+        <button onClick={handleAddKunde} style={{
+          background: "#1b74e4", color: "#fff", border: "none", borderRadius: 7,
+          padding: "6px 14px", fontWeight: 600, fontSize: "1.06rem", cursor: "pointer"
+        }}>
+          Hinzufügen
+        </button>
+        <button onClick={handleExport} style={{ marginLeft: "auto" }}>
+          Export als JSON
+        </button>
+      </div>
+
+      {/* Kundenliste */}
+      <div style={{
+        display: "flex",
+        flexWrap: "wrap",
+        gap: 18,
+        marginBottom: 35
+      }}>
+        {Object.keys(config.kunden).map(nr => (
+          <button
+            key={nr}
+            onClick={() => setSelected(nr)}
+            style={{
+              background: selected === nr ? "#2563eb" : "#f0f5fa",
+              color: selected === nr ? "#fff" : "#222",
+              fontWeight: 700,
+              fontSize: "1.1rem",
+              borderRadius: 13,
+              border: selected === nr ? "2px solid #1b74e4" : "1px solid #d4e0ee",
+              padding: "14px 28px",
+              cursor: "pointer",
+              boxShadow: selected === nr ? "0 2px 14px #2563eb23" : "none"
+            }}
+          >
+            {nr}
+          </button>
+        ))}
+      </div>
+
+      {/* Details für ausgewählten Kunden */}
+      {selected && config.kunden[selected] && (
+        <div style={{
+          background: "#f7fafd",
+          borderRadius: 18,
+          padding: 30,
+          marginBottom: 30,
+          boxShadow: "0 4px 24px #23365a12"
+        }}>
+          <div style={{ display: "flex", justifyContent: "space-between" }}>
+            <h2 style={{ color: "#2049a0", marginBottom: 8 }}>
+              Kunde {selected} Details
+            </h2>
+            <button
+              onClick={() => handleDeleteKunde(selected)}
+              style={{
+                background: "#f56b6b",
+                color: "#fff",
+                border: "none",
+                borderRadius: 8,
+                padding: "8px 22px",
+                fontWeight: 700,
+                fontSize: "1.05rem",
+                cursor: "pointer",
+                marginLeft: 16
+              }}
+            >
+              Löschen
+            </button>
+          </div>
+          <div style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
+            gap: 26,
+            marginTop: 12
+          }}>
+            {/* Labels und Paletten */}
+            <div>
+              <b>Labels & Paletten:</b>
+              {config.kunden[selected].labels.map((label, idx) => (
+                <div key={idx} style={{ display: "flex", gap: 12, marginBottom: 5 }}>
+                  <input
+                    type="text"
+                    value={label}
+                    onChange={e => handleValueChange(selected, "labels", idx, e.target.value)}
+                    style={{ width: 165 }}
+                  />
+                  <input
+                    type="number"
+                    value={config.kunden[selected].palletUnits[idx]}
+                    onChange={e => handleValueChange(selected, "palletUnits", idx, e.target.value)}
+                    style={{ width: 78 }}
+                  />
+                  <span style={{ color: "#7c8da2", fontSize: "0.96em" }}>
+                    (Label, Paletten)
+                  </span>
+                </div>
+              ))}
+            </div>
+            {/* Material und Verpackungszeit */}
+            <div>
+              <b>Material & Verpackungszeit:</b>
+              {config.kunden[selected].packagingMaterial.map((mat, idx) => (
+                <div key={idx} style={{ display: "flex", gap: 12, marginBottom: 5 }}>
+                  <input
+                    type="number"
+                    step="0.01"
+                    value={mat}
+                    onChange={e => handleValueChange(selected, "packagingMaterial", idx, e.target.value)}
+                    style={{ width: 78 }}
+                  />
+                  <input
+                    type="number"
+                    step="0.01"
+                    value={config.kunden[selected].packagingTime[idx]}
+                    onChange={e => handleValueChange(selected, "packagingTime", idx, e.target.value)}
+                    style={{ width: 78 }}
+                  />
+                  <span style={{ color: "#7c8da2", fontSize: "0.96em" }}>
+                    (Material, Zeit)
+                  </span>
+                </div>
+              ))}
+            </div>
+            {/* Preise */}
+            <div style={{ gridColumn: "1 / -1", marginTop: 12 }}>
+              <b>kmRateTable:</b>
+              <div style={{ overflowX: "auto", marginTop: 6 }}>
+                <table style={{ borderCollapse: "collapse", minWidth: 440 }}>
+                  <thead>
+                    <tr>
+                      <th></th>
+                      {config.kunden[selected].labels.map((l, cIdx) => (
+                        <th key={cIdx} style={{ textAlign: "center", fontWeight: 600, color: "#2049a0", padding: 4, fontSize: "0.96em" }}>
+                          Typ {cIdx + 1}
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {["1-2 Paletten", "3 Paletten", "4-6 Paletten", "7+ Paletten"].map((rowName, rIdx) => (
+                      <tr key={rIdx}>
+                        <td style={{ fontWeight: 600, color: "#4a6fb3", paddingRight: 9 }}>{rowName}</td>
+                        {config.kunden[selected].preise.kmRateTable[rIdx].map((cell, cIdx) => (
+                          <td key={cIdx} style={{ padding: "3px 7px" }}>
+                            <input
+                              type="number"
+                              step="0.01"
+                              value={cell}
+                              onChange={e => handlePreisChange(selected, rIdx, cIdx, e.target.value)}
+                              style={{ width: 54 }}
+                            />
+                          </td>
+                        ))}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+            {/* Auftraggeber */}
+            <div style={{ gridColumn: "1 / -1", marginTop: 20, marginBottom: 8 }}>
+              <b>Auftraggeber:</b>
+              <div style={{ display: "grid", gridTemplateColumns: "160px 1fr", rowGap: 12, columnGap: 15, alignItems: "center", marginTop: 10 }}>
+                <span style={{ fontWeight: 500 }}>Firmenname:</span>
+                <input
+                  type="text"
+                  value={config.kunden[selected].auftraggeber?.firmenname || ""}
+                  onChange={e => handleAuftraggeberChange(selected, "firmenname", e.target.value)}
+                  style={{ width: "100%", minWidth: 180, fontSize: "1.13em", padding: "7px 10px" }}
+                />
+                <span style={{ fontWeight: 500 }}>Straße:</span>
+                <input
+                  type="text"
+                  value={config.kunden[selected].auftraggeber?.strasse || ""}
+                  onChange={e => handleAuftraggeberChange(selected, "strasse", e.target.value)}
+                  style={{ width: "100%", minWidth: 180, fontSize: "1.13em", padding: "7px 10px" }}
+                />
+                <span style={{ fontWeight: 500 }}>PLZ:</span>
+                <input
+                  type="text"
+                  value={config.kunden[selected].auftraggeber?.plz || ""}
+                  onChange={e => handleAuftraggeberChange(selected, "plz", e.target.value)}
+                  style={{ width: "100%", minWidth: 100, fontSize: "1.13em", padding: "7px 10px" }}
+                />
+                <span style={{ fontWeight: 500 }}>Ort:</span>
+                <input
+                  type="text"
+                  value={config.kunden[selected].auftraggeber?.ort || ""}
+                  onChange={e => handleAuftraggeberChange(selected, "ort", e.target.value)}
+                  style={{ width: "100%", minWidth: 140, fontSize: "1.13em", padding: "7px 10px" }}
+                />
+                <span style={{ fontWeight: 500 }}>Land:</span>
+                <input
+                  type="text"
+                  value={config.kunden[selected].auftraggeber?.land || ""}
+                  onChange={e => handleAuftraggeberChange(selected, "land", e.target.value)}
+                  style={{ width: "100%", minWidth: 140, fontSize: "1.13em", padding: "7px 10px" }}
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

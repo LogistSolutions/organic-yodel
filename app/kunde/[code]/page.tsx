@@ -1,13 +1,17 @@
-import AssetpreisKalkulator from "../../components/AssetpreisKalkulator";
+import AssetpreisKalkulator from '../../components/AssetpreisKalkulator';
 import config from "../../data/config.json";
 import { notFound } from "next/navigation";
 
-export default async function KundePage(props: any) {
-  const kundencode = props?.params?.code;
-  // @ts-ignore: config-Kunden ist any
-  const kundeConfig = config.kunden[kundencode];
+type Params = { params: { code: string } };
 
+export default function KundePage({ params }: Params) {
+  const kundeConfig = config.kunden[params.code];
   if (!kundeConfig) return notFound();
 
-  return <AssetpreisKalkulator config={kundeConfig} />;
+  return (
+    <AssetpreisKalkulator
+      config={kundeConfig}
+      kundennummer={params.code}
+    />
+  );
 }
