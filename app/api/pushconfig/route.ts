@@ -7,7 +7,6 @@ const BRANCH = "codespace-organic-yodel-v654xpww5qj6cx55w";
 const CONFIG_PATH = "app/data/config.json";
 const COMMITTER_NAME = "KalkulatorAdmin";
 const COMMITTER_EMAIL = "admin@logist.de";
-
 // SHA der aktuellen Datei holen (für Update)
 async function getFileSha() {
   const url = `https://api.github.com/repos/${REPO}/contents/${CONFIG_PATH}?ref=${BRANCH}`;
@@ -17,7 +16,8 @@ async function getFileSha() {
   });
   if (!res.ok) {
     const text = await res.text();
-    throw new Error("Konnte SHA nicht abrufen. Status: " + res.status + " – " + text);
+    // Antwort auch zurückgeben!
+    throw new Error(`Konnte SHA nicht abrufen. Status: ${res.status} – ${text}`);
   }
   const data = await res.json();
   return data.sha;
@@ -27,7 +27,14 @@ export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
     const content = Buffer.from(JSON.stringify(body, null, 2)).toString("base64");
-    const sha = await getFileSha();
+    let sha = null;
+
+    try {
+      sha = await getFileSha();
+    } catch (e: any) {
+      // SHA-Fehler explizit weitergeben!
+      return NextResponse.json({ error: e.message }, { status: 500 });
+    }
 
     // Commit anlegen
     const url = `https://api.github.com/repos/${REPO}/contents/${CONFIG_PATH}`;
@@ -51,12 +58,26 @@ export async function POST(req: NextRequest) {
       cache: "no-store"
     });
 
+    const result = await res.json();
+
     if (!res.ok) {
-      const error = await res.text();
-      return NextResponse.json({ error: error || "Fehler beim Commit" }, { status: 500 });
+      // Fehler der GitHub-API ausführlich an den Client geben!
+      return NextResponse.json(
+        { error: `Commit fehlgeschlagen: ${result.message || JSON.stringify(result)}` },
+        { status: 500 }
+      );
     }
 
-    return NextResponse.json({ success: true });
+    // Erfolg: Commit-Infos zeigen!
+    return NextResponse.json({
+      success: true,
+      commit: {
+        message: result.commit?.message,
+        sha: result.commit?.sha,
+        url: result.commit?.html_url,
+      }
+    });
+
   } catch (e: any) {
     return NextResponse.json({ error: e.message }, { status: 500 });
   }
