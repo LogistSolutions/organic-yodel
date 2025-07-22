@@ -2,10 +2,9 @@ import AssetpreisKalkulator from "../../components/AssetpreisKalkulator";
 import config from "../../data/config.json";
 import { notFound } from "next/navigation";
 
-export default function KundePage({ params }: { params: { code: string } }) {
+export default async function KundePage({ params }) {
   const kundencode = params.code;
-  // Prüfe, ob der Code existiert (achte auf ggf. string/number!)
-  // @ts-ignore: config-Kunden könnten als any geladen werden, das ist hier ok.
+  // @ts-ignore: config-Kunden ist any
   const kundeConfig = config.kunden[kundencode];
 
   if (!kundeConfig) return notFound();
