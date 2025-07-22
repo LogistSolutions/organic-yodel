@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 
-// Hole alle nötigen Secrets aus der Umgebung
-const TOKEN = process.env.GITHUB_TOKEN!;
-const REPO = process.env.GITHUB_REPO!;
-const BRANCH = process.env.GITHUB_BRANCH || "codespace-organic-yodel-v654xpww5qj6cx55w";
-const CONFIG_PATH = process.env.GITHUB_CONFIG_PATH || "app/data/config.json";
-const COMMITTER_NAME = process.env.GITHUB_COMMITTER_NAME || "Admin";
-const COMMITTER_EMAIL = process.env.GITHUB_COMMITTER_EMAIL || "admin@example.com";
+// HART KODIERTE VARIABLEN – passe an deine Daten an!
+const TOKEN = "DEIN_GITHUB_TOKEN_HIER"; // <-- Trage deinen Token ein!
+const REPO = "LogistSolutions/organic-yodel";
+const BRANCH = "codespace-organic-yodel-v654xpww5qj6cx55w";
+const CONFIG_PATH = "app/data/config.json";
+const COMMITTER_NAME = "KalkulatorAdmin";
+const COMMITTER_EMAIL = "admin@logist.de";
 
 // SHA der aktuellen Datei holen (für Update)
 async function getFileSha() {
@@ -15,7 +15,10 @@ async function getFileSha() {
     headers: { Authorization: `Bearer ${TOKEN}`, "Accept": "application/vnd.github+json" },
     cache: "no-store"
   });
-  if (!res.ok) throw new Error("Konnte SHA nicht abrufen");
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error("Konnte SHA nicht abrufen. Status: " + res.status + " – " + text);
+  }
   const data = await res.json();
   return data.sha;
 }
@@ -49,8 +52,8 @@ export async function POST(req: NextRequest) {
     });
 
     if (!res.ok) {
-      const error = await res.json();
-      return NextResponse.json({ error: error.message || "Fehler beim Commit" }, { status: 500 });
+      const error = await res.text();
+      return NextResponse.json({ error: error || "Fehler beim Commit" }, { status: 500 });
     }
 
     return NextResponse.json({ success: true });
