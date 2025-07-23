@@ -1,7 +1,3 @@
-export async function POST(req: NextRequest) {
-  console.log("SMTP_USER:", process.env.SMTP_USER);
-  // Restlicher Code...
-}
 import { NextRequest, NextResponse } from 'next/server';
 import { chromium } from 'playwright';
 import nodemailer from 'nodemailer';
