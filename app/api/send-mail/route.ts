@@ -1,3 +1,7 @@
+export async function POST(req: NextRequest) {
+  console.log("SMTP_USER:", process.env.SMTP_USER);
+  // Restlicher Code...
+}
 import { NextRequest, NextResponse } from 'next/server';
 import { chromium } from 'playwright';
 import nodemailer from 'nodemailer';
@@ -12,9 +16,9 @@ export async function POST(req: NextRequest) {
     console.log("SMTP_USER:", process.env.SMTP_USER);
 
     // Fehler bei fehlenden SMTP-Daten
-    if (!process.env.SMTP_HOST || !process.env.SMTP_PORT || !process.env.SMTP_USER || !process.env.SMTP_PASS) {
-      throw new Error("Fehlende SMTP-Umgebungsdaten! Prüfe deine .env.local");
-    }
+    //if (!process.env.SMTP_HOST || !process.env.SMTP_PORT || !process.env.SMTP_USER || !process.env.SMTP_PASS) {
+      //throw new Error("Fehlende SMTP-Umgebungsdaten! Prüfe deine .env.local");
+    //}
 
     // 1. PDF mit Playwright erzeugen
     const browser = await chromium.launch({
