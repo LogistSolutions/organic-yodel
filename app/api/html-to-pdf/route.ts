@@ -31,7 +31,10 @@ export async function POST(req: NextRequest) {
   } catch (e) {
     console.error("PDF-API-Fehler:", e);
     return new NextResponse(
-      JSON.stringify({ error: e instanceof Error ? e.message : String(e), stack: e?.stack }),
+      JSON.stringify({
+        error: e instanceof Error ? e.message : String(e),
+        stack: e instanceof Error ? e.stack : undefined,
+      }),
       { status: 500, headers: { 'Content-Type': 'application/json' } }
     );
   }
