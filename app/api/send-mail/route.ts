@@ -6,6 +6,16 @@ export async function POST(req: NextRequest) {
   try {
     const { html, kundenNummer, referenz, empfaengerMail } = await req.json();
 
+    // SMTP-Variablen ausgeben:
+    console.log("SMTP_HOST:", process.env.SMTP_HOST);
+    console.log("SMTP_PORT:", process.env.SMTP_PORT);
+    console.log("SMTP_USER:", process.env.SMTP_USER);
+
+    // Fehler bei fehlenden SMTP-Daten
+    if (!process.env.SMTP_HOST || !process.env.SMTP_PORT || !process.env.SMTP_USER || !process.env.SMTP_PASS) {
+      throw new Error("Fehlende SMTP-Umgebungsdaten! Prüfe deine .env.local");
+    }
+
     // 1. PDF mit Playwright erzeugen
     const browser = await chromium.launch({
       args: ['--no-sandbox', '--disable-setuid-sandbox'],
@@ -23,11 +33,18 @@ export async function POST(req: NextRequest) {
     const transporter = nodemailer.createTransport({
       host: process.env.SMTP_HOST,
       port: Number(process.env.SMTP_PORT),
-      secure: true, // Wichtig für 465!
+      secure: false,
       auth: {
         user: process.env.SMTP_USER,
         pass: process.env.SMTP_PASS,
       },
+    });
+
+    // SMTP-Login explizit testen (optional)
+    await transporter.verify().then(() => {
+      console.log("SMTP-Verbindung erfolgreich!");
+    }).catch(err => {
+      throw new Error("SMTP-Verify fehlgeschlagen: " + err);
     });
 
     // 3. E-Mail senden
@@ -48,7 +65,10 @@ export async function POST(req: NextRequest) {
   } catch (e) {
     console.error("PDF-Mail-Fehler:", e);
     return new NextResponse(
-      JSON.stringify({ error: e instanceof Error ? e.message : String(e) }),
+      JSON.stringify({
+        error: e instanceof Error ? e.message : String(e),
+        stack: e instanceof Error ? e.stack : undefined,
+      }),
       { status: 500, headers: { 'Content-Type': 'application/json' } }
     );
   }
