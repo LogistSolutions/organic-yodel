@@ -1,49 +1,13 @@
 "use client";
 import React, { useState } from "react";
 
-// PDF-HTML-Download-Button (optional)
-function PdfHtmlDownloadButton({ selector = "#pdf-content" }) {
+// ===== PDF-Download-Button =====
+function PdfDownloadButton({ getPdfHtml }: { getPdfHtml: () => string }) {
   const [loading, setLoading] = useState(false);
 
   const handleDownload = async () => {
     setLoading(true);
-    const element = document.querySelector(selector);
-    if (!element) {
-      alert("PDF-Bereich nicht gefunden!");
-      setLoading(false);
-      return;
-    }
-    const contentHtml = element.outerHTML;
-
-    const html = `
-      <!DOCTYPE html>
-      <html>
-      <head>
-        <meta charset="UTF-8" />
-        <title>Kalkulation</title>
-        <style>
-          body { font-family: Arial, sans-serif; font-size: 14px; margin: 16px; }
-          table { border-collapse: collapse; width: 100%; margin: 1em 0; }
-          th, td { border: 1px solid #ddd; padding: 8px; }
-          th { background: #eee; }
-          .highlight { font-weight: bold; }
-          .highlight.green { color: #128300; }
-          .highlight.blue { color: #0053B3; }
-          .banner-warning { background: #ffe0ac; padding: 8px 14px; margin: 1em 0; border-radius: 8px; }
-          .success-message { background: #e0ffe8; color: #1e6c3c; padding: 8px 14px; margin: 1em 0; border-radius: 8px; }
-          .cta-btn { background: #0070f3; color: #fff; border: none; border-radius: 6px; padding: 0.6em 1.4em; font-size: 1.07em; font-weight: bold; cursor: pointer; margin-top: 1em; }
-          .ref-row { display: flex; align-items: center; gap: 10px; margin: 1em 0; }
-          .input-modern { border: 1px solid #bbb; border-radius: 6px; padding: 6px 9px; width: 100%; }
-          fieldset { border: 1px solid #ccc; border-radius: 7px; margin: 1em 0; padding: 8px 12px; }
-          legend { font-weight: bold; color: #0053B3; }
-        </style>
-      </head>
-      <body>
-        ${contentHtml}
-      </body>
-      </html>
-    `;
-
+    const html = getPdfHtml();
     const res = await fetch("/api/html-to-pdf", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -71,21 +35,28 @@ function PdfHtmlDownloadButton({ selector = "#pdf-content" }) {
       onClick={handleDownload}
       disabled={loading}
       style={{
-        marginTop: 16,
         background: "#008060",
         color: "#fff",
-        padding: "0.5rem 1.2rem",
         border: "none",
-        borderRadius: 8,
+        borderRadius: 6,
+        padding: "0.6em 1.4em",
+        fontSize: "1.07em",
         fontWeight: "bold",
         cursor: loading ? "not-allowed" : "pointer",
+        marginTop: "1em",
+        width: 200,
+        minWidth: 200,
+        textDecoration: "none",
+        display: "inline-block",
+        textAlign: "center",
       }}
     >
-      {loading ? "PDF wird erstellt..." : "PDF (Ansicht) herunterladen"}
+      {loading ? "PDF wird erstellt..." : "PDF herunterladen"}
     </button>
   );
 }
 
+// ===== Haupt-Komponente =====
 type KundeConfig = {
   labels: string[];
   palletUnits: number[];
@@ -111,9 +82,8 @@ export default function AssetpreisKalkulator({ config, kundennummer }: Props) {
     Array(config.labels.length).fill("")
   );
   const [reference, setReference] = useState("");
-  const [submitted, setSubmitted] = useState(false);
 
-  const [auftraggeber, setAuftraggeber] = useState({
+  const [abholadresse, setAbholadresse] = useState({
     firmenname: config.auftraggeber?.firmenname || "",
     strasse: config.auftraggeber?.strasse || "",
     plz: config.auftraggeber?.plz || "",
@@ -129,15 +99,14 @@ export default function AssetpreisKalkulator({ config, kundennummer }: Props) {
     land: "",
   });
 
-  const handleAuftraggeberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setAuftraggeber({ ...auftraggeber, [e.target.name]: e.target.value });
+  const handleAbholadresseChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setAbholadresse({ ...abholadresse, [e.target.name]: e.target.value });
   };
   const handleZieladresseChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setZieladresse({ ...zieladresse, [e.target.name]: e.target.value });
   };
 
-  const safeNum = (v: number | "") =>
-    typeof v === "number" && !isNaN(v) ? v : 0;
+  const safeNum = (v: number | "") => (typeof v === "number" && !isNaN(v) ? v : 0);
 
   const totalQuantity = quantities.reduce(
     (acc: number, val) => acc + safeNum(val),
@@ -177,29 +146,50 @@ export default function AssetpreisKalkulator({ config, kundennummer }: Props) {
     totalQuantity > 0 ? (total / totalQuantity).toFixed(2) : "0.00";
   const totalCost = (Number(avgUnitPrice) * totalQuantity).toFixed(2);
 
-  // ------ PDF VERSAND BEIM BEAUFTRAGEN -------
-  const handleOrder = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const showBanner = roundedPallets >= 26;
 
-    if (
-      !zieladresse.firmenname ||
-      !zieladresse.strasse ||
-      !zieladresse.plz ||
-      !zieladresse.ort ||
-      !zieladresse.land
-    ) {
-      alert("Bitte fülle alle Felder der Zieladresse aus!");
-      return;
-    }
+  // === MAILTO-Link vorbereiten (ohne max. Anzahl/Palette) ===
+  const mailTo = (() => {
+    const empfaenger = "Oliver.Pfizenmayer@logist.de";
+    const subject = `Kalkulation ${kundennummer}${reference ? " - " + reference : ""}`;
+    const bodyLines = [
+      `Kundennummer: ${kundennummer}`,
+      `Referenz: ${reference}`,
+      "",
+      "Kalkulation:",
+      `----------------------------------------`,
+      `Position\tAnzahl`,
+      ...config.labels
+        .map((label, idx) => {
+          const anzahl = quantities[idx];
+          if (anzahl === "" || anzahl == null) return null; // 0 ist erlaubt!
+          return `${label}\t${anzahl}`;
+        })
+        .filter(Boolean),
+      `----------------------------------------`,
+      `Gesamtstückzahl: ${totalQuantity}`,
+      `Palettenanzahl: ${roundedPallets}`,
+      `Gesamtpreis netto: ${totalCost} €`,
+      "",
+      `Abholadresse: ${abholadresse.firmenname}, ${abholadresse.strasse}, ${abholadresse.plz} ${abholadresse.ort}, ${abholadresse.land}`,
+      `Zieladresse: ${zieladresse.firmenname}, ${zieladresse.strasse}, ${zieladresse.plz} ${zieladresse.ort}, ${zieladresse.land}`
+    ];
+    const mailBody = encodeURIComponent(bodyLines.join('\n'));
+    return `mailto:${empfaenger}?subject=${encodeURIComponent(subject)}&body=${mailBody}`;
+  })();
 
-    // HTML für PDF holen
-    const element = document.querySelector("#pdf-content");
-    if (!element) {
-      alert("PDF-Bereich nicht gefunden!");
-      return;
-    }
-    const contentHtml = element.outerHTML;
-    const html = `
+  // === PDF-HTML für Download ===
+  const getPdfHtml = () => {
+    const rows = config.labels.map((label, idx) => {
+      const anzahl = quantities[idx];
+      if (anzahl === "" || anzahl == null) return ""; // 0 ist erlaubt!
+      return `<tr>
+        <td>${label}</td>
+        <td>${anzahl}</td>
+        <td>${config.palletUnits[idx]}</td>
+      </tr>`;
+    }).join("");
+    return `
       <!DOCTYPE html>
       <html>
       <head>
@@ -213,182 +203,175 @@ export default function AssetpreisKalkulator({ config, kundennummer }: Props) {
           .highlight { font-weight: bold; }
           .highlight.green { color: #128300; }
           .highlight.blue { color: #0053B3; }
-          .banner-warning { background: #ffe0ac; padding: 8px 14px; margin: 1em 0; border-radius: 8px; }
-          .success-message { background: #e0ffe8; color: #1e6c3c; padding: 8px 14px; margin: 1em 0; border-radius: 8px; }
-          .cta-btn { background: #0070f3; color: #fff; border: none; border-radius: 6px; padding: 0.6em 1.4em; font-size: 1.07em; font-weight: bold; cursor: pointer; margin-top: 1em; }
-          .ref-row { display: flex; align-items: center; gap: 10px; margin: 1em 0; }
-          .input-modern { border: 1px solid #bbb; border-radius: 6px; padding: 6px 9px; width: 100%; }
-          fieldset { border: 1px solid #ccc; border-radius: 7px; margin: 1em 0; padding: 8px 12px; }
-          legend { font-weight: bold; color: #0053B3; }
         </style>
       </head>
       <body>
-        ${contentHtml}
+        <h2>Kalkulation – Kundennummer: ${kundennummer}${reference ? " – " + reference : ""}</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Position</th>
+              <th>Anzahl</th>
+              <th>max. Stück/Palette</th>
+            </tr>
+          </thead>
+          <tbody>${rows}</tbody>
+        </table>
+        <p>Gesamtstückzahl: <b>${totalQuantity}</b></p>
+        <p>Palettenanzahl: <b>${roundedPallets}</b></p>
+        <p>Gesamtpreis netto: <b>${totalCost} €</b></p>
+        <hr />
+        <p>Abholadresse: ${abholadresse.firmenname}, ${abholadresse.strasse}, ${abholadresse.plz} ${abholadresse.ort}, ${abholadresse.land}</p>
+        <p>Zieladresse: ${zieladresse.firmenname}, ${zieladresse.strasse}, ${zieladresse.plz} ${zieladresse.ort}, ${zieladresse.land}</p>
       </body>
       </html>
     `;
-
-    // E-Mail-Empfänger fest:
-    const empfaengerMail = "Oliver.Pfizenmayer@logist.de";
-
-    // Sende an die API:
-    const res = await fetch("/api/send-mail", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        html,
-        kundenNummer: kundennummer,
-        referenz: reference,
-        empfaengerMail,
-      }),
-    });
-
-    if (!res.ok) {
-      const err = await res.json();
-      alert("Fehler beim E-Mail-Versand: " + (err.error || "unbekannt"));
-      return;
-    }
-
-    setSubmitted(true);
-    setTimeout(() => setSubmitted(false), 3000);
   };
-
-  const showBanner = roundedPallets >= 26;
 
   return (
     <div className="main-container">
-      {/* ALLES, was im PDF landen soll! */}
-      <div id="pdf-content">
-        <div style={{
-          width: "100%",
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-          margin: "0 0 1.2rem 0"
+      <div style={{
+        width: "100%",
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+        margin: "0 0 1.2rem 0"
+      }}>
+        <img src="/LogistLogo.png" alt="Firmenlogo" style={{ maxHeight: 64, maxWidth: 210, margin: "0 auto", display: "block" }} />
+      </div>
+      <h1 style={{ textAlign: "center", marginBottom: 10 }}>
+        Assetpreis-Kalkulator
+        <br />
+        <span style={{
+          fontSize: "1.12rem",
+          color: "#888",
+          fontWeight: 500,
+          letterSpacing: 0,
+          display: "block",
+          marginTop: 6,
         }}>
-          <img src="/LogistLogo.png" alt="Firmenlogo" style={{ maxHeight: 64, maxWidth: 210, margin: "0 auto", display: "block" }} />
-        </div>
+          Kundennummer: <b>{kundennummer}</b>
+        </span>
+      </h1>
 
-        <h1 style={{ textAlign: "center", marginBottom: 10 }}>
-          Assetpreis-Kalkulator
-          <br />
-          <span style={{
-            fontSize: "1.12rem",
-            color: "#888",
-            fontWeight: 500,
-            letterSpacing: 0,
-            display: "block",
-            marginTop: 6,
-          }}>
-            Kundennummer: <b>{kundennummer}</b>
-          </span>
-        </h1>
-
-        <form>
-          <table className="form-table">
-            <tbody>
-              <tr>
-                <td className="form-label">km Eingabe</td>
+      <form>
+        <table className="form-table">
+          <tbody>
+            <tr>
+              <td className="form-label">km Eingabe</td>
+              <td>
+                <input
+                  type="number"
+                  min="0"
+                  className="input-modern"
+                  value={km}
+                  onChange={e => setKm(e.target.value === "" ? "" : Number(e.target.value))}
+                  placeholder="z.B. 120"
+                />
+              </td>
+            </tr>
+            {config.labels.map((label, idx) => (
+              <tr key={idx}>
+                <td className="form-label">{label}</td>
                 <td>
                   <input
                     type="number"
                     min="0"
                     className="input-modern"
-                    value={km}
-                    onChange={e => setKm(e.target.value === "" ? "" : Number(e.target.value))}
-                    placeholder="z.B. 120"
+                    value={quantities[idx]}
+                    onChange={e => {
+                      const updated = [...quantities];
+                      updated[idx] = e.target.value === "" ? "" : Number(e.target.value);
+                      setQuantities(updated);
+                    }}
+                    placeholder="Anzahl"
                   />
                 </td>
               </tr>
-              {config.labels.map((label, idx) => (
-                <tr key={idx}>
-                  <td className="form-label">{label}</td>
-                  <td>
-                    <input
-                      type="number"
-                      min="0"
-                      className="input-modern"
-                      value={quantities[idx]}
-                      onChange={e => {
-                        const updated = [...quantities];
-                        updated[idx] = e.target.value === "" ? "" : Number(e.target.value);
-                        setQuantities(updated);
-                      }}
-                      placeholder="Anzahl"
-                    />
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+            ))}
+          </tbody>
+        </table>
 
-          <table className="result-table">
-            <thead>
-              <tr>
-                <th>∅ Stückpreis</th>
-                <th>Palettenanzahl</th>
-                <th>Gesamtpreis netto</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td className="highlight blue">{avgUnitPrice} €</td>
-                <td className="highlight">{roundedPallets}</td>
-                <td className="highlight green">{totalCost} €</td>
-              </tr>
-            </tbody>
-          </table>
+        <table className="result-table">
+          <thead>
+            <tr>
+              <th>∅ Stückpreis</th>
+              <th>Palettenanzahl</th>
+              <th>Gesamtpreis netto</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td className="highlight blue">{avgUnitPrice} €</td>
+              <td className="highlight">{roundedPallets}</td>
+              <td className="highlight green">{totalCost} €</td>
+            </tr>
+          </tbody>
+        </table>
 
-          {showBanner && (
-            <div className="banner-warning">
-              Bei Palettenanzahl ab 26 erhalten Sie ein individuelles Angebot. Bitte senden Sie Ihre Anfrage per E-Mail an <a href="mailto:info@logist.de">info@logist.de</a>.
-            </div>
+        {showBanner && (
+          <div className="banner-warning">
+            Bei Palettenanzahl ab 26 erhalten Sie ein individuelles Angebot. Bitte senden Sie Ihre Anfrage per E-Mail an <a href="mailto:info@logist.de">info@logist.de</a>.
+          </div>
+        )}
+
+        <div className="ref-row">
+          <label>Referenz</label>
+          <input
+            type="text"
+            className="input-modern"
+            value={reference}
+            onChange={e => setReference(e.target.value)}
+            placeholder="z.B. Auftragsnummer"
+          />
+        </div>
+
+        <fieldset>
+          <legend>Abholadresse</legend>
+          <input name="firmenname" placeholder="Firmenname" value={abholadresse.firmenname} onChange={handleAbholadresseChange} required />
+          <input name="strasse" placeholder="Straße" value={abholadresse.strasse} onChange={handleAbholadresseChange} required />
+          <input name="plz" placeholder="PLZ" value={abholadresse.plz} onChange={handleAbholadresseChange} required />
+          <input name="ort" placeholder="Ort" value={abholadresse.ort} onChange={handleAbholadresseChange} required />
+          <input name="land" placeholder="Land" value={abholadresse.land} onChange={handleAbholadresseChange} required />
+        </fieldset>
+
+        <fieldset>
+          <legend>Zieladresse</legend>
+          <input name="firmenname" placeholder="Firmenname" value={zieladresse.firmenname} onChange={handleZieladresseChange} required />
+          <input name="strasse" placeholder="Straße" value={zieladresse.strasse} onChange={handleZieladresseChange} required />
+          <input name="plz" placeholder="PLZ" value={zieladresse.plz} onChange={handleZieladresseChange} required />
+          <input name="ort" placeholder="Ort" value={zieladresse.ort} onChange={handleZieladresseChange} required />
+          <input name="land" placeholder="Land" value={zieladresse.land} onChange={handleZieladresseChange} required />
+        </fieldset>
+
+        {/* --- BUTTONS --- */}
+        <div style={{ display: "flex", gap: "18px", marginTop: 18, justifyContent: "center" }}>
+          <PdfDownloadButton getPdfHtml={getPdfHtml} />
+          {!showBanner && (
+            <a
+              href={mailTo}
+              className="cta-btn"
+              style={{
+                display: "inline-block",
+                background: "#0053B3",
+                color: "#fff",
+                border: "none",
+                borderRadius: 6,
+                padding: "0.6em 1.4em",
+                fontSize: "1.07em",
+                fontWeight: "bold",
+                cursor: "pointer",
+                marginTop: "1em",
+                textDecoration: "none",
+                width: 200,
+                minWidth: 200,
+                textAlign: "center",
+              }}
+            >
+              Per E-Mail senden
+            </a>
           )}
-
-          <div className="ref-row">
-            <label>Referenz</label>
-            <input
-              type="text"
-              className="input-modern"
-              value={reference}
-              onChange={e => setReference(e.target.value)}
-              placeholder="z.B. Auftragsnummer"
-            />
-          </div>
-
-          <fieldset>
-            <legend>Auftraggeber</legend>
-            <input name="firmenname" placeholder="Firmenname" value={auftraggeber.firmenname} onChange={handleAuftraggeberChange} required />
-            <input name="strasse" placeholder="Straße" value={auftraggeber.strasse} onChange={handleAuftraggeberChange} required />
-            <input name="plz" placeholder="PLZ" value={auftraggeber.plz} onChange={handleAuftraggeberChange} required />
-            <input name="ort" placeholder="Ort" value={auftraggeber.ort} onChange={handleAuftraggeberChange} required />
-            <input name="land" placeholder="Land" value={auftraggeber.land} onChange={handleAuftraggeberChange} required />
-          </fieldset>
-
-          <fieldset>
-            <legend>Zieladresse</legend>
-            <input name="firmenname" placeholder="Firmenname" value={zieladresse.firmenname} onChange={handleZieladresseChange} required />
-            <input name="strasse" placeholder="Straße" value={zieladresse.strasse} onChange={handleZieladresseChange} required />
-            <input name="plz" placeholder="PLZ" value={zieladresse.plz} onChange={handleZieladresseChange} required />
-            <input name="ort" placeholder="Ort" value={zieladresse.ort} onChange={handleZieladresseChange} required />
-            <input name="land" placeholder="Land" value={zieladresse.land} onChange={handleZieladresseChange} required />
-          </fieldset>
-        </form>
-      </div>
-      {/* PDF-Button außerhalb des pdf-content, damit er nicht im PDF ist! */}
-      <PdfHtmlDownloadButton selector="#pdf-content" />
-      {/* Das echte Beauftragen-Formular für den Versand */}
-      <form onSubmit={handleOrder}>
-        {!showBanner && (
-          <button type="submit" className="cta-btn">
-            Beauftragen & PDF per E-Mail senden
-          </button>
-        )}
-        {submitted && (
-          <div className="success-message">
-            Bestellung wurde registriert & PDF gesendet.
-          </div>
-        )}
+        </div>
       </form>
     </div>
   );
