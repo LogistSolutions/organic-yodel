@@ -1,0 +1,10 @@
+{
+  "functions": {
+    "api/**/*.ts": {
+      "includeFiles": "node_modules/.cache/ms-playwright/**/*"
+    },
+    "api/**/*.js": {
+      "includeFiles": "node_modules/.cache/ms-playwright/**/*"
+    }
+  }
+}
