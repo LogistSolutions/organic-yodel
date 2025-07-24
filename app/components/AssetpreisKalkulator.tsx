@@ -138,18 +138,35 @@ const [zieladresse, setZieladresse] = useState<Adresse>(
     (acc: number, val) => acc + safeNum(val),
     0
   );
-  const totalPallets = quantities.reduce(
-    (acc: number, val, idx) => acc + safeNum(val) / config.palletUnits[idx],
-    0
-  );
+const palletUnits = config.palletUnits ?? [];
+const totalPallets = quantities.reduce(
+  (acc: number, val, idx) => {
+    const divisor = palletUnits[idx];
+    if (!divisor) return acc;
+    return acc + safeNum(val) / divisor;
+  },
+  0
+);
+
   const roundedPallets = Math.ceil(totalPallets);
 
-  let kmRate = 1.75;
-  const kmRateTable = config.preise.kmRateTable;
-  if (roundedPallets <= 2) kmRate = kmRateTable[0][3];
-  else if (roundedPallets === 3) kmRate = kmRateTable[1][3];
-  else if (roundedPallets <= 6) kmRate = kmRateTable[2][3];
-  else kmRate = kmRateTable[3][3];
+let kmRate = 1.75;
+const kmRateTable = config.preise?.kmRateTable ?? [
+  [1.75, 1.75, 1.75, 1.75, 1.75, 1.75], // Fallback-Default-Werte
+  [1.75, 1.75, 1.75, 1.75, 1.75, 1.75],
+  [1.75, 1.75, 1.75, 1.75, 1.75, 1.75],
+  [1.75, 1.75, 1.75, 1.75, 1.75, 1.75]
+];
+
+if (roundedPallets <= 2) {
+  kmRate = kmRateTable[0][3];
+} else if (roundedPallets === 3) {
+  kmRate = kmRateTable[1][3];
+} else if (roundedPallets <= 6) {
+  kmRate = kmRateTable[2][3];
+} else {
+  kmRate = kmRateTable[3][3];
+}
 
 const kmValue = safeNum(km);
 const kmAdjusted = kmValue + 70;
@@ -171,15 +188,28 @@ if (roundedPallets >= 12) {
 let transportCost = kmAdjusted * kmRate + zuschlag;
 
 
-  const totalMaterial = quantities.reduce(
-    (acc: number, val, idx) => acc + safeNum(val) * config.packagingMaterial[idx],
-    0
-  );
-  const totalPackaging = quantities.reduce(
-    (acc: number, val, idx) =>
-      acc + (safeNum(val) * config.packagingTime[idx] * 40) / 60,
-    0
-  );
+const totalMaterial = quantities.reduce(
+  (acc: number, val, idx) =>
+    acc +
+    safeNum(val) *
+      (Array.isArray(config.packagingMaterial) && typeof config.packagingMaterial[idx] === "number"
+        ? config.packagingMaterial[idx]
+        : 0),
+  0
+);
+
+const totalPackaging = quantities.reduce(
+  (acc: number, val, idx) =>
+    acc +
+    (safeNum(val) *
+      (Array.isArray(config.packagingTime) && typeof config.packagingTime[idx] === "number"
+        ? config.packagingTime[idx]
+        : 0) *
+      40) /
+      60,
+  0
+);
+
   const total = transportCost + totalMaterial + totalPackaging;
   const avgUnitPrice =
     totalQuantity > 0 ? (total / totalQuantity).toFixed(2) : "0.00";
@@ -461,7 +491,7 @@ const getPdfHtml = () => {
             id="bemerkungen"
             className="input-modern"
             rows={3}
-            placeholder="Optional: Rückfragen, Wünsche oder Hinweise eintragen …"
+            placeholder="Pflicht: Ansprechpartner Abholdadresse. Optional: Hinweise, Wünsche oder Rückfragen …"
             value={bemerkungen}
             onChange={e => setBemerkungen(e.target.value)}
             style={{

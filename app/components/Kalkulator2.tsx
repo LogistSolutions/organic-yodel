@@ -21,7 +21,7 @@ type KundeConfig = {
 type Props = { config: KundeConfig; kundennummer: string };
 
 // Einstellungen
-const MAX_ROWS = 6;
+const MAX_ROWS = 3;
 const MAX_MENGE = 700;
 
 // ===== PDF-Download-Button =====
@@ -301,7 +301,7 @@ export default function StueckpreisKalkulator({ config, kundennummer }: Props) {
           </tfoot>
         </table>
         <div style="margin:10px 0"><b>Durchschnittlicher Stückpreis: ${
-          totalMenge > 0 ? avgStueckpreis.toLocaleString("de-DE", { minimumFractionDigits: 3 }) + " €" : "–"
+          totalMenge > 0 ? avgStueckpreis.toLocaleString("de-DE", { minimumFractionDigits: 2 }) + " €" : "–"
         }</b></div>
         <div style="margin:6px 0 16px 0;">
         <b>${infoText}</b>
@@ -430,7 +430,7 @@ export default function StueckpreisKalkulator({ config, kundennummer }: Props) {
         Durchschnittlicher Stückpreis:{" "}
         <span style={{ fontWeight: 900, fontSize: "1.15em" }}>
           {totalMenge > 0 && gesamt > 0
-            ? (gesamt / totalMenge).toLocaleString("de-DE", { minimumFractionDigits: 3 }) + " €"
+            ? (gesamt / totalMenge).toLocaleString("de-DE", { minimumFractionDigits: 2 }) + " €"
             : "–"}
         </span>
       </div>
@@ -544,7 +544,7 @@ export default function StueckpreisKalkulator({ config, kundennummer }: Props) {
       <textarea
         rows={2}
         className="input-modern"
-        placeholder="Optional: Hinweise, Wünsche oder Rückfragen …"
+        placeholder="Pflicht: Ansprechpartner Abholdadresse. Optional: Hinweise, Wünsche oder Rückfragen …"
         value={bemerkungen}
         onChange={e => setBemerkungen(e.target.value)}
         style={{

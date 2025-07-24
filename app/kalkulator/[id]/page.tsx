@@ -5,13 +5,15 @@ import fs from "fs";
 import path from "path";
 
 export default async function KalkulatorPage({ params, searchParams }: any) {
-  // Hole Config
-  const configPath = path.join(process.cwd(), "app", "data", "config.json");
-  const config = JSON.parse(fs.readFileSync(configPath, "utf-8"));
-
   // Parameter auslesen
   const kundennummer = searchParams.kundennr;
   const kalkId = params.id;
+
+  // Hole Config ASYNCHRON innerhalb der Funktion!
+  const configPath = path.join(process.cwd(), "app", "data", "config.json");
+  const configStr = await fs.promises.readFile(configPath, "utf-8");
+  const config = JSON.parse(configStr);
+
   const kundeConfig = config.kunden[kundennummer];
 
   // Existenz und Freischaltung prüfen
@@ -23,12 +25,21 @@ export default async function KalkulatorPage({ params, searchParams }: any) {
     return notFound();
   }
 
+  // Kalkulator-spezifische Zusatzdaten raussuchen (labels, staffeln, ...)
+  const kalkulatorObj = kundeConfig.kalkulatoren.find((k: any) => k.id === kalkId) || {};
+  const mergedConfig = {
+    ...kundeConfig,
+    ...(kalkulatorObj.labels ? { labels: kalkulatorObj.labels } : {}),
+    ...(kalkulatorObj.staffeln ? { staffeln: kalkulatorObj.staffeln } : {}),
+    // Hier ggf. weitere spezielle Felder wie staffeln, preise etc.
+  };
+
   // Kalkulator-Auswahl nach ID
   if (kalkId === "Kalkulator") {
-    return <AssetpreisKalkulator config={kundeConfig} kundennummer={kundennummer} />;
+    return <AssetpreisKalkulator config={mergedConfig} kundennummer={kundennummer} />;
   }
   if (kalkId === "Kalkulator2") {
-    return <Kalkulator2 config={kundeConfig} kundennummer={kundennummer} />;
+    return <Kalkulator2 config={mergedConfig} kundennummer={kundennummer} />;
   }
 
   // Für weitere Kalkulatoren entsprechend erweitern
