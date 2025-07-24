@@ -148,12 +148,25 @@ export default function AssetpreisKalkulator({ config, kundennummer }: Props) {
   else if (roundedPallets <= 6) kmRate = kmRateTable[2][3];
   else kmRate = kmRateTable[3][3];
 
-  const kmValue = safeNum(km);
-  const kmAdjusted = kmValue + 70;
-  let transportCost = kmAdjusted * kmRate;
-  if (kmValue > 450) transportCost += 100;
-  if (roundedPallets >= 7) transportCost += 400;
-  if (roundedPallets >= 7 && kmValue > 450) transportCost += 500;
+const kmValue = safeNum(km);
+const kmAdjusted = kmValue + 70;
+
+// ----- NEUE ZUSCHLAG-LOGIK -----
+let zuschlag = 0;
+
+if (roundedPallets < 7 && kmValue > 450) {
+  zuschlag += 100;
+}
+if (roundedPallets >= 7 && roundedPallets < 12) {
+  zuschlag += 400;
+  if (kmValue > 450) zuschlag += 500;
+}
+if (roundedPallets >= 12) {
+  zuschlag += 800;
+  if (kmValue > 450) zuschlag += 1000;
+}
+let transportCost = kmAdjusted * kmRate + zuschlag;
+
 
   const totalMaterial = quantities.reduce(
     (acc: number, val, idx) => acc + safeNum(val) * config.packagingMaterial[idx],
@@ -210,8 +223,8 @@ const subject = `${rechnungsadresse.firmenname}${reference ? " – " + reference
     "",
     `Bemerkungen: ${bemerkungen.trim() ? bemerkungen.trim() : "Keine"}`
   ];
-  const mailBody = encodeURIComponent(bodyLines.join('\n'));
-  return `mailto:${empfaenger}?subject=${encodeURIComponent(subject)}&body=${mailBody}`;
+const mailBody = encodeURIComponent(bodyLines.join('\n'));
+return `mailto:${empfaenger}?subject=${encodeURIComponent(subject)}&body=${mailBody}`;
 })();
 
 
@@ -312,7 +325,7 @@ const getPdfHtml = () => {
         <table className="form-table">
           <tbody>
             <tr>
-              <td className="form-label">km Eingabe</td>
+              <td className="form-label">km Eingabe einfache Strecke</td>
               <td>
                 <input
                   type="number"

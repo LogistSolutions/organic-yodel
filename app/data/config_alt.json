@@ -30,7 +30,7 @@
         },
         {
           "id": "Kalkulator2",
-          "bezeichnung": "Mobiliar Kalkulator"
+          "bezeichnung": "Stueckpreis-Kalkulator"
         }
       ],
       "labels": [
@@ -170,7 +170,7 @@
       "kalkulatoren": [
         {
           "id": "Kalkulator2",
-          "bezeichnung": "Mobiliar Kalkulator"
+          "bezeichnung": "Stueckpreis-Kalkulator"
         }
       ],
       "labels": [
