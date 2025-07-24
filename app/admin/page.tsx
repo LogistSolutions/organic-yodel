@@ -2,24 +2,40 @@
 import React, { useState } from "react";
 import configJson from "../data/config.json";
 
+type Adresse = {
+  firmenname?: string;
+  strasse?: string;
+  plz?: string;
+  ort?: string;
+  land?: string;
+};
+
+type Kalkulator = {
+  id: string;
+  bezeichnung: string;
+};
+
 type Kunde = {
   labels: string[];
   palletUnits: number[];
   packagingMaterial: number[];
   packagingTime: number[];
   preise: { kmRateTable: number[][] };
-  auftraggeber?: {
-    firmenname?: string;
-    strasse?: string;
-    plz?: string;
-    ort?: string;
-    land?: string;
-  };
+  rechnung?: Adresse;
+  abholadresse?: Adresse;
+  lieferadresse?: Adresse;
+  lieferadresse_abweichend?: boolean;
+  kalkulatoren?: Kalkulator[];
 };
 
 type Config = {
   kunden: { [kundennummer: string]: Kunde };
 };
+
+const ALL_KALKULATOREN = [
+  { id: "Kalkulator", defaultLabel: "IT Assetpreis-Kalkulator" },
+  { id: "Kalkulator2", defaultLabel: "Mobiliar Kalkulator" }
+];
 
 const initialConfig: Config = configJson as Config;
 const ADMIN_PW = "GROSS";
@@ -31,7 +47,11 @@ function leeresKundeObjekt(): Kunde {
     packagingMaterial: [0, 0, 0, 0, 0, 0],
     packagingTime: [0, 0, 0, 0, 0, 0],
     preise: { kmRateTable: [[0,0,0,0,0,0],[0,0,0,0,0,0],[0,0,0,0,0,0],[0,0,0,0,0,0]] },
-    auftraggeber: { firmenname: "", strasse: "", plz: "", ort: "", land: "" }
+    rechnung: { firmenname: "", strasse: "", plz: "", ort: "", land: "" },
+    abholadresse: { firmenname: "", strasse: "", plz: "", ort: "", land: "" },
+    lieferadresse: { firmenname: "", strasse: "", plz: "", ort: "", land: "" },
+    lieferadresse_abweichend: false,
+    kalkulatoren: []
   }
 }
 
@@ -43,6 +63,79 @@ export default function AdminPage() {
   const [config, setConfig] = useState<Config>(initialConfig);
   const [neueKundennr, setNeueKundennr] = useState("");
   const [selected, setSelected] = useState<string | null>(null);
+
+  // Kalkulatoren Handling
+  function handleKalkulatorCheck(kundennummer: string, kalkId: string, checked: boolean) {
+    setConfig(prev => {
+      const kunde = prev.kunden[kundennummer];
+      let neueKalks = Array.isArray(kunde.kalkulatoren) ? [...kunde.kalkulatoren] : [];
+      if (checked) {
+        if (!neueKalks.find(k => k.id === kalkId)) {
+          const defaultName = ALL_KALKULATOREN.find(k => k.id === kalkId)?.defaultLabel || kalkId;
+          neueKalks.push({ id: kalkId, bezeichnung: defaultName });
+        }
+      } else {
+        neueKalks = neueKalks.filter(k => k.id !== kalkId);
+      }
+      return {
+        ...prev,
+        kunden: {
+          ...prev.kunden,
+          [kundennummer]: {
+            ...kunde,
+            kalkulatoren: neueKalks
+          }
+        }
+      }
+    });
+  }
+  function handleKalkulatorBezeichnung(kundennummer: string, kalkId: string, val: string) {
+    setConfig(prev => {
+      const kunde = prev.kunden[kundennummer];
+      const neueKalks = (kunde.kalkulatoren || []).map(k =>
+        k.id === kalkId ? { ...k, bezeichnung: val } : k
+      );
+      return {
+        ...prev,
+        kunden: {
+          ...prev.kunden,
+          [kundennummer]: {
+            ...kunde,
+            kalkulatoren: neueKalks
+          }
+        }
+      }
+    });
+  }
+
+  // Adress Handling
+  function handleAdresseChange(kundennummer: string, art: "rechnung"|"abholadresse"|"lieferadresse", subfield: keyof Adresse, value: string) {
+    setConfig(prev => ({
+      ...prev,
+      kunden: {
+        ...prev.kunden,
+        [kundennummer]: {
+          ...prev.kunden[kundennummer],
+          [art]: {
+            ...(prev.kunden[kundennummer][art] || {}),
+            [subfield]: value,
+          }
+        }
+      }
+    }));
+  }
+  function handleLieferAbweichendChange(kundennummer: string, abweichend: boolean) {
+    setConfig(prev => ({
+      ...prev,
+      kunden: {
+        ...prev.kunden,
+        [kundennummer]: {
+          ...prev.kunden[kundennummer],
+          lieferadresse_abweichend: abweichend
+        }
+      }
+    }));
+  }
 
   const handleValueChange = (
     kundennummer: string,
@@ -61,26 +154,6 @@ export default function AdminPage() {
           ),
         }
       }
-    }));
-  };
-
-  const handleAuftraggeberChange = (
-    kundennummer: string,
-    subfield: string,
-    value: string
-  ) => {
-    setConfig(prev => ({
-      ...prev,
-      kunden: {
-        ...prev.kunden,
-        [kundennummer]: {
-          ...prev.kunden[kundennummer],
-          auftraggeber: {
-            ...(prev.kunden[kundennummer].auftraggeber || {}),
-            [subfield]: value,
-          },
-        },
-      },
     }));
   };
 
@@ -141,7 +214,7 @@ export default function AdminPage() {
   const handleExport = () => {
     const blob = new Blob(
       [JSON.stringify(config, null, 2)],
-      { type: "application/json" }
+      { type: "application/json;charset=utf-8" }
     );
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
@@ -244,14 +317,8 @@ export default function AdminPage() {
 
       {/* Details für ausgewählten Kunden */}
       {selected && config.kunden[selected] && (
-        <div style={{
-          background: "#f7fafd",
-          borderRadius: 18,
-          padding: 30,
-          marginBottom: 30,
-          boxShadow: "0 4px 24px #23365a12"
-        }}>
-          <div style={{ display: "flex", justifyContent: "space-between" }}>
+        <div className="admin-details">
+          <div style={{ width: "100%", textAlign: "center" }}>
             <h2 style={{ color: "#2049a0", marginBottom: 8 }}>
               Kunde {selected} Details
             </h2>
@@ -272,137 +339,159 @@ export default function AdminPage() {
               Löschen
             </button>
           </div>
-          <div style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
-            gap: 26,
-            marginTop: 12
-          }}>
-            {/* Labels und Paletten */}
-            <div>
-              <b>Labels & Paletten:</b>
-              {config.kunden[selected].labels.map((label, idx) => (
-                <div key={idx} style={{ display: "flex", gap: 12, marginBottom: 5 }}>
+
+          <div className="admin-section-title">Labels & Paletten</div>
+          {config.kunden[selected].labels.map((label, idx) => (
+            <div className="admin-form-row" key={idx}>
+              <label>Label {idx + 1}:</label>
+              <input
+                type="text"
+                value={label}
+                onChange={e => handleValueChange(selected, "labels", idx, e.target.value)}
+              />
+              <label>Paletten:</label>
+              <input
+                type="number"
+                value={config.kunden[selected].palletUnits[idx]}
+                onChange={e => handleValueChange(selected, "palletUnits", idx, e.target.value)}
+              />
+            </div>
+          ))}
+
+          <div className="admin-section-title">Material & Verpackungszeit</div>
+          {config.kunden[selected].packagingMaterial.map((mat, idx) => (
+            <div className="admin-form-row" key={idx}>
+              <label>Material {idx + 1}:</label>
+              <input
+                type="number"
+                step="0.01"
+                value={mat}
+                onChange={e => handleValueChange(selected, "packagingMaterial", idx, e.target.value)}
+              />
+              <label>Zeit:</label>
+              <input
+                type="number"
+                step="0.01"
+                value={config.kunden[selected].packagingTime[idx]}
+                onChange={e => handleValueChange(selected, "packagingTime", idx, e.target.value)}
+              />
+            </div>
+          ))}
+
+          <div className="admin-section-title">kmRateTable</div>
+          <div style={{ overflowX: "auto", marginTop: 6 }}>
+            <table style={{ borderCollapse: "collapse", minWidth: 440, margin: "0 auto" }}>
+              <thead>
+                <tr>
+                  <th></th>
+                  {config.kunden[selected].labels.map((l, cIdx) => (
+                    <th key={cIdx} style={{ textAlign: "center", fontWeight: 600, color: "#2049a0", padding: 4, fontSize: "0.96em" }}>
+                      Typ {cIdx + 1}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {["1-2 Paletten", "3 Paletten", "4-6 Paletten", "7+ Paletten"].map((rowName, rIdx) => (
+                  <tr key={rIdx}>
+                    <td style={{ fontWeight: 600, color: "#4a6fb3", paddingRight: 9 }}>{rowName}</td>
+                    {config.kunden[selected].preise.kmRateTable[rIdx].map((cell, cIdx) => (
+                      <td key={cIdx} style={{ padding: "3px 7px" }}>
+                        <input
+                          type="number"
+                          step="0.01"
+                          value={cell}
+                          onChange={e => handlePreisChange(selected, rIdx, cIdx, e.target.value)}
+                          style={{ width: 54 }}
+                        />
+                      </td>
+                    ))}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          <div className="admin-section-title">Rechnungsadresse</div>
+          {["firmenname", "strasse", "plz", "ort", "land"].map(field => (
+            <div className="admin-form-row" key={field}>
+              <label>{field.charAt(0).toUpperCase() + field.slice(1)}:</label>
+              <input
+                type="text"
+                value={config.kunden[selected].rechnung?.[field as keyof Adresse] || ""}
+                onChange={e => handleAdresseChange(selected, "rechnung", field as keyof Adresse, e.target.value)}
+              />
+            </div>
+          ))}
+
+          <div className="admin-section-title">Abholadresse</div>
+          {["firmenname", "strasse", "plz", "ort", "land"].map(field => (
+            <div className="admin-form-row" key={field}>
+              <label>{field.charAt(0).toUpperCase() + field.slice(1)}:</label>
+              <input
+                type="text"
+                value={config.kunden[selected].abholadresse?.[field as keyof Adresse] || ""}
+                onChange={e => handleAdresseChange(selected, "abholadresse", field as keyof Adresse, e.target.value)}
+              />
+            </div>
+          ))}
+          <div className="admin-section-title">Lieferadresse</div>
+          <div className="liefer-checkbox-row">
+            <input
+              type="checkbox"
+              checked={config.kunden[selected].lieferadresse_abweichend || false}
+              onChange={e => handleLieferAbweichendChange(selected, e.target.checked)}
+              id="lieferadresse_abweichend"
+              className="liefer-checkbox"
+            />
+            <label htmlFor="lieferadresse_abweichend" className="liefer-checkbox-label">
+              Abweichende Ziel-Adresse (optional)
+            </label>
+          </div>
+          {config.kunden[selected].lieferadresse_abweichend && (
+            <>
+              {["firmenname", "strasse", "plz", "ort", "land"].map(field => (
+                <div className="admin-form-row" key={field}>
+                  <label>{field.charAt(0).toUpperCase() + field.slice(1)}:</label>
                   <input
                     type="text"
-                    value={label}
-                    onChange={e => handleValueChange(selected, "labels", idx, e.target.value)}
-                    style={{ width: 165 }}
+                    value={config.kunden[selected].lieferadresse?.[field as keyof Adresse] || ""}
+                    onChange={e => handleAdresseChange(selected, "lieferadresse", field as keyof Adresse, e.target.value)}
                   />
-                  <input
-                    type="number"
-                    value={config.kunden[selected].palletUnits[idx]}
-                    onChange={e => handleValueChange(selected, "palletUnits", idx, e.target.value)}
-                    style={{ width: 78 }}
-                  />
-                  <span style={{ color: "#7c8da2", fontSize: "0.96em" }}>
-                    (Label, Paletten)
-                  </span>
                 </div>
               ))}
-            </div>
-            {/* Material und Verpackungszeit */}
-            <div>
-              <b>Material & Verpackungszeit:</b>
-              {config.kunden[selected].packagingMaterial.map((mat, idx) => (
-                <div key={idx} style={{ display: "flex", gap: 12, marginBottom: 5 }}>
-                  <input
-                    type="number"
-                    step="0.01"
-                    value={mat}
-                    onChange={e => handleValueChange(selected, "packagingMaterial", idx, e.target.value)}
-                    style={{ width: 78 }}
-                  />
-                  <input
-                    type="number"
-                    step="0.01"
-                    value={config.kunden[selected].packagingTime[idx]}
-                    onChange={e => handleValueChange(selected, "packagingTime", idx, e.target.value)}
-                    style={{ width: 78 }}
-                  />
-                  <span style={{ color: "#7c8da2", fontSize: "0.96em" }}>
-                    (Material, Zeit)
-                  </span>
+            </>
+          )}
+
+          <div className="admin-section-title">Kalkulatoren freischalten:</div>
+          <div className="kalkulatoren-list">
+            {ALL_KALKULATOREN.map(kalk => {
+              const istAktiv = (config.kunden[selected].kalkulatoren || []).some(k => k.id === kalk.id);
+              const bezeichnung = (config.kunden[selected].kalkulatoren || []).find(k => k.id === kalk.id)?.bezeichnung || kalk.defaultLabel;
+              return (
+                <div key={kalk.id} className="kalk-row">
+                  <label className="kalk-checkbox-label">
+                    <input
+                      type="checkbox"
+                      checked={istAktiv}
+                      onChange={e => handleKalkulatorCheck(selected, kalk.id, e.target.checked)}
+                      id={`kalk-${selected}-${kalk.id}`}
+                      className="kalk-checkbox"
+                    />
+                    <span className="kalk-label">{kalk.defaultLabel}</span>
+                  </label>
+                  {istAktiv && (
+                    <input
+                      type="text"
+                      value={bezeichnung}
+                      onChange={e => handleKalkulatorBezeichnung(selected, kalk.id, e.target.value)}
+                      placeholder="Kachel-Beschriftung"
+                      className="kalk-beschriftung"
+                    />
+                  )}
                 </div>
-              ))}
-            </div>
-            {/* Preise */}
-            <div style={{ gridColumn: "1 / -1", marginTop: 12 }}>
-              <b>kmRateTable:</b>
-              <div style={{ overflowX: "auto", marginTop: 6 }}>
-                <table style={{ borderCollapse: "collapse", minWidth: 440 }}>
-                  <thead>
-                    <tr>
-                      <th></th>
-                      {config.kunden[selected].labels.map((l, cIdx) => (
-                        <th key={cIdx} style={{ textAlign: "center", fontWeight: 600, color: "#2049a0", padding: 4, fontSize: "0.96em" }}>
-                          Typ {cIdx + 1}
-                        </th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {["1-2 Paletten", "3 Paletten", "4-6 Paletten", "7+ Paletten"].map((rowName, rIdx) => (
-                      <tr key={rIdx}>
-                        <td style={{ fontWeight: 600, color: "#4a6fb3", paddingRight: 9 }}>{rowName}</td>
-                        {config.kunden[selected].preise.kmRateTable[rIdx].map((cell, cIdx) => (
-                          <td key={cIdx} style={{ padding: "3px 7px" }}>
-                            <input
-                              type="number"
-                              step="0.01"
-                              value={cell}
-                              onChange={e => handlePreisChange(selected, rIdx, cIdx, e.target.value)}
-                              style={{ width: 54 }}
-                            />
-                          </td>
-                        ))}
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-            {/* Auftraggeber */}
-            <div style={{ gridColumn: "1 / -1", marginTop: 20, marginBottom: 8 }}>
-              <b>Auftraggeber:</b>
-              <div style={{ display: "grid", gridTemplateColumns: "160px 1fr", rowGap: 12, columnGap: 15, alignItems: "center", marginTop: 10 }}>
-                <span style={{ fontWeight: 500 }}>Firmenname:</span>
-                <input
-                  type="text"
-                  value={config.kunden[selected].auftraggeber?.firmenname || ""}
-                  onChange={e => handleAuftraggeberChange(selected, "firmenname", e.target.value)}
-                  style={{ width: "100%", minWidth: 180, fontSize: "1.13em", padding: "7px 10px" }}
-                />
-                <span style={{ fontWeight: 500 }}>Straße:</span>
-                <input
-                  type="text"
-                  value={config.kunden[selected].auftraggeber?.strasse || ""}
-                  onChange={e => handleAuftraggeberChange(selected, "strasse", e.target.value)}
-                  style={{ width: "100%", minWidth: 180, fontSize: "1.13em", padding: "7px 10px" }}
-                />
-                <span style={{ fontWeight: 500 }}>PLZ:</span>
-                <input
-                  type="text"
-                  value={config.kunden[selected].auftraggeber?.plz || ""}
-                  onChange={e => handleAuftraggeberChange(selected, "plz", e.target.value)}
-                  style={{ width: "100%", minWidth: 100, fontSize: "1.13em", padding: "7px 10px" }}
-                />
-                <span style={{ fontWeight: 500 }}>Ort:</span>
-                <input
-                  type="text"
-                  value={config.kunden[selected].auftraggeber?.ort || ""}
-                  onChange={e => handleAuftraggeberChange(selected, "ort", e.target.value)}
-                  style={{ width: "100%", minWidth: 140, fontSize: "1.13em", padding: "7px 10px" }}
-                />
-                <span style={{ fontWeight: 500 }}>Land:</span>
-                <input
-                  type="text"
-                  value={config.kunden[selected].auftraggeber?.land || ""}
-                  onChange={e => handleAuftraggeberChange(selected, "land", e.target.value)}
-                  style={{ width: "100%", minWidth: 140, fontSize: "1.13em", padding: "7px 10px" }}
-                />
-              </div>
-            </div>
+              );
+            })}
           </div>
         </div>
       )}

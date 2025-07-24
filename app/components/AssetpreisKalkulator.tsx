@@ -65,13 +65,21 @@ type KundeConfig = {
   preise: {
     kmRateTable: number[][];
   };
-  auftraggeber?: {
+  rechnung?: {
     firmenname?: string;
     strasse?: string;
     plz?: string;
     ort?: string;
     land?: string;
   };
+};
+
+type Adresse = {
+  firmenname: string;
+  strasse: string;
+  plz: string;
+  ort: string;
+  land: string;
 };
 
 type Props = { config: KundeConfig; kundennummer: string };
@@ -82,16 +90,19 @@ export default function AssetpreisKalkulator({ config, kundennummer }: Props) {
     Array(config.labels.length).fill("")
   );
   const [reference, setReference] = useState("");
+  const [bemerkungen, setBemerkungen] = useState(""); // <---- Neu
 
-  const [abholadresse, setAbholadresse] = useState({
-    firmenname: config.auftraggeber?.firmenname || "",
-    strasse: config.auftraggeber?.strasse || "",
-    plz: config.auftraggeber?.plz || "",
-    ort: config.auftraggeber?.ort || "",
-    land: config.auftraggeber?.land || "",
+  // Rechnungsadresse (aus admin)
+  const [rechnungsadresse] = useState<Adresse>({
+    firmenname: config.rechnung?.firmenname || "",
+    strasse: config.rechnung?.strasse || "",
+    plz: config.rechnung?.plz || "",
+    ort: config.rechnung?.ort || "",
+    land: config.rechnung?.land || "",
   });
 
-  const [zieladresse, setZieladresse] = useState({
+  // Abholadresse (immer leer, oder vorausgefüllt je nach Wunsch)
+  const [abholadresse, setAbholadresse] = useState<Adresse>({
     firmenname: "",
     strasse: "",
     plz: "",
@@ -99,13 +110,25 @@ export default function AssetpreisKalkulator({ config, kundennummer }: Props) {
     land: "",
   });
 
-  const handleAbholadresseChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setAbholadresse({ ...abholadresse, [e.target.name]: e.target.value });
-  };
-  const handleZieladresseChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setZieladresse({ ...zieladresse, [e.target.name]: e.target.value });
+  // Zieladresse (abweichende Lieferadresse, Standard: leer)
+  const [abweichendeLieferadresse, setAbweichendeLieferadresse] = useState(false);
+  const [zieladresse, setZieladresse] = useState<Adresse>({
+    firmenname: "",
+    strasse: "",
+    plz: "",
+    ort: "",
+    land: "",
+  });
+
+  // Change Handler
+  const handleAdresseChange = (
+    setter: React.Dispatch<React.SetStateAction<Adresse>>,
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    setter((old) => ({ ...old, [e.target.name]: e.target.value }));
   };
 
+  // Hilfsfunktionen
   const safeNum = (v: number | "") => (typeof v === "number" && !isNaN(v) ? v : 0);
 
   const totalQuantity = quantities.reduce(
@@ -147,86 +170,117 @@ export default function AssetpreisKalkulator({ config, kundennummer }: Props) {
   const totalCost = (Number(avgUnitPrice) * totalQuantity).toFixed(2);
 
   const showBanner = roundedPallets >= 26;
+// === MAILTO-Link vorbereiten ===
+const mailTo = (() => {
+  const empfaenger = "Dispo@logist.de";
+const subject = `${rechnungsadresse.firmenname}${reference ? " – " + reference : ""}`;
 
-  // === MAILTO-Link vorbereiten (ohne max. Anzahl/Palette) ===
-  const mailTo = (() => {
-    const empfaenger = "Oliver.Pfizenmayer@logist.de";
-    const subject = `Kalkulation ${kundennummer}${reference ? " - " + reference : ""}`;
-    const bodyLines = [
-      `Kundennummer: ${kundennummer}`,
-      `Referenz: ${reference}`,
-      "",
-      "Kalkulation:",
-      `----------------------------------------`,
-      `Position\tAnzahl`,
-      ...config.labels
-        .map((label, idx) => {
-          const anzahl = quantities[idx];
-          if (anzahl === "" || anzahl == null) return null; // 0 ist erlaubt!
-          return `${label}\t${anzahl}`;
-        })
-        .filter(Boolean),
-      `----------------------------------------`,
-      `Gesamtstückzahl: ${totalQuantity}`,
-      `Palettenanzahl: ${roundedPallets}`,
-      `Gesamtpreis netto: ${totalCost} €`,
-      "",
-      `Abholadresse: ${abholadresse.firmenname}, ${abholadresse.strasse}, ${abholadresse.plz} ${abholadresse.ort}, ${abholadresse.land}`,
-      `Zieladresse: ${zieladresse.firmenname}, ${zieladresse.strasse}, ${zieladresse.plz} ${zieladresse.ort}, ${zieladresse.land}`
-    ];
-    const mailBody = encodeURIComponent(bodyLines.join('\n'));
-    return `mailto:${empfaenger}?subject=${encodeURIComponent(subject)}&body=${mailBody}`;
-  })();
-
-  // === PDF-HTML für Download ===
-  const getPdfHtml = () => {
-    const rows = config.labels.map((label, idx) => {
+  // Berechnung für Spaltenbreite
+  const labelWidth = Math.max(...config.labels.map(l => l.length), 30) + 2;
+  const asciiRows = config.labels
+    .map((label, idx) => {
       const anzahl = quantities[idx];
-      if (anzahl === "" || anzahl == null) return ""; // 0 ist erlaubt!
-      return `<tr>
-        <td>${label}</td>
-        <td>${anzahl}</td>
-        <td>${config.palletUnits[idx]}</td>
-      </tr>`;
-    }).join("");
-    return `
-      <!DOCTYPE html>
-      <html>
-      <head>
-        <meta charset="UTF-8" />
-        <title>Kalkulation</title>
-        <style>
-          body { font-family: Arial, sans-serif; font-size: 14px; margin: 16px; }
-          table { border-collapse: collapse; width: 100%; margin: 1em 0; }
-          th, td { border: 1px solid #ddd; padding: 8px; }
-          th { background: #eee; }
-          .highlight { font-weight: bold; }
-          .highlight.green { color: #128300; }
-          .highlight.blue { color: #0053B3; }
-        </style>
-      </head>
-      <body>
-        <h2>Kalkulation – Kundennummer: ${kundennummer}${reference ? " – " + reference : ""}</h2>
-        <table>
-          <thead>
-            <tr>
-              <th>Position</th>
-              <th>Anzahl</th>
-              <th>max. Stück/Palette</th>
-            </tr>
-          </thead>
-          <tbody>${rows}</tbody>
-        </table>
-        <p>Gesamtstückzahl: <b>${totalQuantity}</b></p>
-        <p>Palettenanzahl: <b>${roundedPallets}</b></p>
-        <p>Gesamtpreis netto: <b>${totalCost} €</b></p>
-        <hr />
-        <p>Abholadresse: ${abholadresse.firmenname}, ${abholadresse.strasse}, ${abholadresse.plz} ${abholadresse.ort}, ${abholadresse.land}</p>
-        <p>Zieladresse: ${zieladresse.firmenname}, ${zieladresse.strasse}, ${zieladresse.plz} ${zieladresse.ort}, ${zieladresse.land}</p>
-      </body>
-      </html>
-    `;
-  };
+      if (anzahl === "" || anzahl == null) return null;
+      return label.padEnd(labelWidth) + String(anzahl).padStart(6, " ");
+    })
+    .filter(Boolean)
+    .join("\n");
+
+  const bodyLines = [
+    `Kundennummer: ${kundennummer}`,
+    `Kunde: ${rechnungsadresse.firmenname}`,
+    `Referenz: ${reference}`,
+    "",
+    "Kalkulation:",
+    "----------------------------------------",
+    "Position".padEnd(labelWidth) + "Anzahl",
+    asciiRows,
+    "----------------------------------------",
+    `Gesamtstückzahl: ${totalQuantity}`,
+    `Palettenanzahl: ${roundedPallets}`,
+    `Gesamtpreis netto: ${totalCost} €`,
+    "",
+    `Rechnungsadresse: ${rechnungsadresse.firmenname}, ${rechnungsadresse.strasse}, ${rechnungsadresse.plz} ${rechnungsadresse.ort}, ${rechnungsadresse.land}`,
+    "",
+    abweichendeLieferadresse
+      ? `Lieferadresse: ${zieladresse.firmenname}, ${zieladresse.strasse}, ${zieladresse.plz} ${zieladresse.ort}, ${zieladresse.land}`
+      : "Abweichende Lieferadresse: Nein",
+    "",
+    `Abholadresse: ${abholadresse.firmenname}, ${abholadresse.strasse}, ${abholadresse.plz} ${abholadresse.ort}, ${abholadresse.land}`,
+    "",
+    `Bemerkungen: ${bemerkungen.trim() ? bemerkungen.trim() : "Keine"}`
+  ];
+  const mailBody = encodeURIComponent(bodyLines.join('\n'));
+  return `mailto:${empfaenger}?subject=${encodeURIComponent(subject)}&body=${mailBody}`;
+})();
+
+
+// === PDF-HTML für Download ===
+const getPdfHtml = () => {
+  // Tabelle: nur Position + Anzahl
+  const rows = config.labels.map((label, idx) => {
+    const anzahl = quantities[idx];
+    if (anzahl === "" || anzahl == null) return "";
+    return `<tr>
+      <td>${label}</td>
+      <td>${anzahl}</td>
+    </tr>`;
+  }).join("");
+  return `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="UTF-8" />
+      <title>Kalkulation</title>
+      <style>
+        body { font-family: Arial, sans-serif; font-size: 14px; margin: 16px; }
+        table { border-collapse: collapse; width: 100%; margin: 1em 0; }
+        th, td { border: 1px solid #ddd; padding: 8px; }
+        th { background: #eee; }
+        .highlight { font-weight: bold; }
+        .highlight.green { color: #128300; }
+        .highlight.blue { color: #0053B3; }
+        .remarks-box {
+          background: #f8fafb;
+          border: 1.5px solid #cce1dd;
+          border-radius: 10px;
+          padding: 14px 16px 12px 16px;
+          margin: 28px 0 2px 0;
+          font-size: 1.08em;
+          color: #174535;
+        }
+      </style>
+    </head>
+    <body>
+      <h2>Kalkulation – ${rechnungsadresse.firmenname}${reference ? " – " + reference : ""}</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Position</th>
+            <th>Anzahl</th>
+          </tr>
+        </thead>
+        <tbody>${rows}</tbody>
+      </table>
+      <p>Gesamtstückzahl: <b>${totalQuantity}</b></p>
+      <p>Palettenanzahl: <b>${roundedPallets}</b></p>
+      <p>Gesamtpreis netto: <b>${totalCost} €</b></p>
+      <hr />
+      <p>Rechnungsadresse: ${rechnungsadresse.firmenname}, ${rechnungsadresse.strasse}, ${rechnungsadresse.plz} ${rechnungsadresse.ort}, ${rechnungsadresse.land}</p>
+      ${
+        abweichendeLieferadresse
+          ? `<p>Lieferadresse: ${zieladresse.firmenname}, ${zieladresse.strasse}, ${zieladresse.plz} ${zieladresse.ort}, ${zieladresse.land}</p>`
+          : "<p>Abweichende Lieferadresse: Nein</p>"
+      }
+      <p>Abholadresse: ${abholadresse.firmenname}, ${abholadresse.strasse}, ${abholadresse.plz} ${abholadresse.ort}, ${abholadresse.land}</p>
+      <div class="remarks-box">
+        <b>Bemerkungen:</b><br/>
+        ${bemerkungen.trim() ? bemerkungen.trim().replace(/\n/g, "<br/>") : "Keine"}
+      </div>
+    </body>
+    </html>
+  `;
+};
 
   return (
     <div className="main-container">
@@ -311,7 +365,7 @@ export default function AssetpreisKalkulator({ config, kundennummer }: Props) {
 
         {showBanner && (
           <div className="banner-warning">
-            Bei Palettenanzahl ab 26 erhalten Sie ein individuelles Angebot. Bitte senden Sie Ihre Anfrage per E-Mail an <a href="mailto:info@logist.de">info@logist.de</a>.
+            Bei Palettenanzahl ab 26 erhalten Sie ein individuelles Angebot. Bitte senden Sie Ihre Anfrage per E-Mail an <a href="mailto:dispo@logist.de">dispo@logist.de</a>.
           </div>
         )}
 
@@ -326,23 +380,92 @@ export default function AssetpreisKalkulator({ config, kundennummer }: Props) {
           />
         </div>
 
+        {/* Rechnungsadresse */}
         <fieldset>
-          <legend>Abholadresse</legend>
-          <input name="firmenname" placeholder="Firmenname" value={abholadresse.firmenname} onChange={handleAbholadresseChange} required />
-          <input name="strasse" placeholder="Straße" value={abholadresse.strasse} onChange={handleAbholadresseChange} required />
-          <input name="plz" placeholder="PLZ" value={abholadresse.plz} onChange={handleAbholadresseChange} required />
-          <input name="ort" placeholder="Ort" value={abholadresse.ort} onChange={handleAbholadresseChange} required />
-          <input name="land" placeholder="Land" value={abholadresse.land} onChange={handleAbholadresseChange} required />
+          <legend>Rechnungsadresse</legend>
+          <input name="firmenname" placeholder="Firmenname" value={rechnungsadresse.firmenname} disabled />
+          <input name="strasse" placeholder="Straße" value={rechnungsadresse.strasse} disabled />
+          <input name="plz" placeholder="PLZ" value={rechnungsadresse.plz} disabled />
+          <input name="ort" placeholder="Ort" value={rechnungsadresse.ort} disabled />
+          <input name="land" placeholder="Land" value={rechnungsadresse.land} disabled />
         </fieldset>
 
+        {/* Abholadresse */}
         <fieldset>
-          <legend>Zieladresse</legend>
-          <input name="firmenname" placeholder="Firmenname" value={zieladresse.firmenname} onChange={handleZieladresseChange} required />
-          <input name="strasse" placeholder="Straße" value={zieladresse.strasse} onChange={handleZieladresseChange} required />
-          <input name="plz" placeholder="PLZ" value={zieladresse.plz} onChange={handleZieladresseChange} required />
-          <input name="ort" placeholder="Ort" value={zieladresse.ort} onChange={handleZieladresseChange} required />
-          <input name="land" placeholder="Land" value={zieladresse.land} onChange={handleZieladresseChange} required />
+          <legend>Abholadresse</legend>
+          <input name="firmenname" placeholder="Firmenname" value={abholadresse.firmenname} onChange={e => handleAdresseChange(setAbholadresse, e)} required />
+          <input name="strasse" placeholder="Straße" value={abholadresse.strasse} onChange={e => handleAdresseChange(setAbholadresse, e)} required />
+          <input name="plz" placeholder="PLZ" value={abholadresse.plz} onChange={e => handleAdresseChange(setAbholadresse, e)} required />
+          <input name="ort" placeholder="Ort" value={abholadresse.ort} onChange={e => handleAdresseChange(setAbholadresse, e)} required />
+          <input name="land" placeholder="Land" value={abholadresse.land} onChange={e => handleAdresseChange(setAbholadresse, e)} required />
         </fieldset>
+
+        {/* Abweichende Zieladresse */}
+        <div style={{ margin: "1.5em 0 0.3em 0" }}>
+  <label style={{ display: "flex", alignItems: "center", gap: 10, fontWeight: 600 }}>
+    <input
+      type="checkbox"
+      checked={abweichendeLieferadresse}
+      onChange={e => setAbweichendeLieferadresse(e.target.checked)}
+      style={{ accentColor: "#008060", width: 18, height: 18 }}
+    />
+    Abweichende Ziel-Adresse
+  </label>
+</div>
+{abweichendeLieferadresse && (
+  <fieldset className="zieladresse-feldset">
+    <legend style={{ color: "#2aabe2", fontWeight: 700, fontSize: "1.07em" }}>
+      Lieferadresse (abweichend)
+    </legend>
+    <input name="firmenname" placeholder="Firmenname" value={zieladresse.firmenname} onChange={e => handleAdresseChange(setZieladresse, e)} required />
+    <input name="strasse" placeholder="Straße" value={zieladresse.strasse} onChange={e => handleAdresseChange(setZieladresse, e)} required />
+    <input name="plz" placeholder="PLZ" value={zieladresse.plz} onChange={e => handleAdresseChange(setZieladresse, e)} required />
+    <input name="ort" placeholder="Ort" value={zieladresse.ort} onChange={e => handleAdresseChange(setZieladresse, e)} required />
+    <input name="land" placeholder="Land" value={zieladresse.land} onChange={e => handleAdresseChange(setZieladresse, e)} required />
+  </fieldset>
+)}
+        {/* ==== BEMERKUNGEN ==== */}
+        <div
+          className="bemerkungen-row"
+          style={{
+            background: "#f7fafb",
+            border: "1.5px solid #cce1dd",
+            borderRadius: 12,
+            padding: "16px 17px 12px 17px",
+            margin: "32px 0 18px 0",
+            boxShadow: "0 2px 18px #ddeee736",
+            color: "#165340",
+            transition: "box-shadow .18s"
+          }}
+        >
+          <label htmlFor="bemerkungen" style={{ fontWeight: 600, color: "#165340", fontSize: "1.11em", marginBottom: 8, display: "block" }}>
+            Bemerkungen:
+          </label>
+          <textarea
+            id="bemerkungen"
+            className="input-modern"
+            rows={3}
+            placeholder="Optional: Rückfragen, Wünsche oder Hinweise eintragen …"
+            value={bemerkungen}
+            onChange={e => setBemerkungen(e.target.value)}
+            style={{
+              width: "100%",
+              minHeight: 58,
+              fontSize: "1.09em",
+              padding: "11px 10px",
+              background: "#fff",
+              color: "#185c44",
+              border: "1.5px solid #c3e1d8",
+              borderRadius: 7,
+              boxShadow: "0 1px 7px #ddeee744",
+              resize: "vertical",
+              outline: "none",
+              transition: "border .15s, box-shadow .15s"
+            }}
+            onFocus={e => e.currentTarget.style.border = "1.7px solid #53b692"}
+            onBlur={e => e.currentTarget.style.border = "1.5px solid #c3e1d8"}
+          />
+        </div>
 
         {/* --- BUTTONS --- */}
         <div style={{ display: "flex", gap: "18px", marginTop: 18, justifyContent: "center" }}>

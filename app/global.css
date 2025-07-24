@@ -260,3 +260,354 @@ input[type="checkbox"] {
   }
   h1 { font-size: 1.4rem; }
 }
+.main-container {
+  max-width: 540px;
+  margin: 0 auto;
+  padding: 1em;
+}
+
+.form-table, .result-table {
+  width: 100%;
+  overflow-x: auto;
+  display: block;
+}
+
+.input-modern {
+  width: 100%;
+  min-width: 0;
+  font-size: 1em;
+  box-sizing: border-box;
+}
+
+.cta-btn, button {
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  margin-bottom: 0.5em;
+}
+
+fieldset {
+  border: 1px solid #ddd;
+  padding: 1em;
+  margin: 1em 0;
+  border-radius: 8px;
+}
+
+@media (max-width: 600px) {
+  .main-container {
+    padding: 0.3em;
+    max-width: 100%;
+  }
+  .form-table th, .form-table td,
+  .result-table th, .result-table td {
+    font-size: 0.97em;
+    padding: 0.6em 0.2em;
+  }
+  fieldset {
+    padding: 0.4em;
+  }
+  h1 {
+    font-size: 1.35em;
+  }
+}
+.bemerkungen-row {
+  background: #f5fcf9;
+  border: 2px solid #46b583;
+  border-radius: 13px;
+  padding: 20px 22px 13px 22px;
+  margin: 38px 0 18px 0;
+  box-shadow: 0 2px 18px #bce9c736;
+  color: #18432b;
+  transition: box-shadow .18s, border .15s;
+  max-width: 600px;
+}
+
+.bemerkungen-row label {
+  font-weight: 700;
+  color: #1d824b;
+  font-size: 1.16em;
+  letter-spacing: 0.03em;
+  margin-bottom: 12px;
+  display: block;
+}
+
+.bemerkungen-row textarea {
+  width: 100%;
+  min-height: 62px;
+  font-size: 1.11em;
+  padding: 12px 12px;
+  background: #fafdfe;
+  color: #125c39;
+  border: 1.6px solid #d2eede;
+  border-radius: 7px;
+  box-shadow: 0 1px 7px #e5f5e6;
+  resize: vertical;
+  outline: none;
+  transition: border .16s, box-shadow .16s;
+}
+.bemerkungen-row textarea:focus {
+  border: 2px solid #43bc8d;
+  box-shadow: 0 0 0 2px #a0e4c9;
+}
+/* Checkbox und Label immer linksbündig, Abstand wie bei anderen Feldern */
+.lieferadresse-checkbox-row {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  margin-bottom: 2px;
+  width: 100%;
+  max-width: 540px;
+  font-weight: 600;
+  font-size: 1.04rem;
+  color: var(--color-primary-dark);
+  text-align: left;
+}
+
+.lieferadresse-checkbox-row label {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+/* Feldset für die Zieladresse */
+.lieferadresse-fieldset {
+  border: 1.5px solid var(--color-accent);
+  background: #fafdff;
+  padding: 22px 18px 12px 18px;
+  border-radius: var(--radius-md);
+  margin-bottom: 26px;
+  margin-top: 0.7em;
+  text-align: left;
+  max-width: 540px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.lieferadresse-fieldset legend {
+  color: var(--color-accent);
+  font-weight: 700;
+  margin-bottom: 8px;
+  letter-spacing: -.01em;
+  font-size: 1.08rem;
+  text-align: left;
+  padding-left: 2px;
+}
+.lieferadresse-fieldset input {
+  display: block;
+  margin: 0.5em 0 1em 0;
+  width: 100%;
+  max-width: 440px;
+  font-size: 1.06em;
+  padding: 10px 12px;
+  border-radius: 7px;
+  border: 1.3px solid #d5eaf7;
+  background: #fff;
+  box-sizing: border-box;
+  transition: border .15s;
+}
+.lieferadresse-fieldset input:focus {
+  border: 1.7px solid var(--color-accent);
+  outline: none;
+}
+
+@media (max-width: 600px) {
+  .lieferadresse-fieldset {
+    padding: 0.6em 0.3em 0.6em 0.3em;
+    max-width: 99vw;
+  }
+}
+.admin-details {
+  background: #f7fafd;
+  border-radius: 18px;
+  padding: 30px;
+  margin-bottom: 30px;
+  box-shadow: 0 4px 24px #23365a12;
+  max-width: 650px;
+  margin-left: auto;
+  margin-right: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.admin-section-title {
+  font-weight: bold;
+  color: #132950;
+  font-size: 1.13em;
+  margin: 32px 0 10px 0;
+  text-align: center;
+}
+
+.admin-form-row {
+  display: grid;
+  grid-template-columns: 140px 1fr;
+  gap: 12px 22px;
+  align-items: center;
+  margin-bottom: 13px;
+  width: 100%;
+  max-width: 440px;
+}
+
+.admin-form-row label {
+  font-weight: 600;
+  color: #2049a0;
+  text-align: right;
+  font-size: 1.07em;
+}
+
+.admin-form-row input,
+.admin-form-row select {
+  width: 100%;
+  font-size: 1.09em;
+  padding: 9px 11px;
+  border-radius: 7px;
+  border: 1.3px solid #d6e2f5;
+  background: #fafdfe;
+}
+
+.admin-checkbox-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin: 6px 0 14px 0;
+}
+
+.kalkulatoren-list {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 8px;
+  margin-bottom: 14px;
+  width: 100%;
+  max-width: 380px;
+}
+
+.kalkulatoren-list > div {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  margin-bottom: 8px;
+  justify-content: flex-start;
+}
+.kalkulatoren-list input[type="text"] {
+  min-width: 0;
+  flex: 1;
+}
+.kalkulatoren-list {
+  margin-top: 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 15px;
+}
+
+.kalk-row {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  margin-bottom: 5px;
+  width: 100%;
+  justify-content: center;
+}
+
+.kalk-checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 1.09em;
+  font-weight: 600;
+}
+
+.kalk-checkbox {
+  width: 22px;
+  height: 22px;
+  accent-color: #1b74e4;
+  cursor: pointer;
+  border-radius: 6px;
+  border: 2px solid #a8b6c8;
+}
+
+.kalk-label {
+  min-width: 105px;
+  color: #22497d;
+}
+
+.kalk-beschriftung {
+  width: 220px;
+  font-size: 1.09em;
+  border-radius: 6px;
+  border: 1.7px solid #c9d6e8;
+  padding: 8px 12px;
+  background: #fafdff;
+  color: #13335c;
+  font-weight: 500;
+  margin-left: 4px;
+  transition: border .14s, box-shadow .13s;
+}
+.kalk-beschriftung:focus {
+  border: 2px solid #3fa6e8;
+  box-shadow: 0 0 0 1.5px #bbe2f7;
+}
+.liefer-checkbox-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 16px 0 18px 0;
+  gap: 15px;
+}
+
+.liefer-checkbox {
+  width: 24px;
+  height: 24px;
+  accent-color: #1b74e4;
+  cursor: pointer;
+}
+
+.liefer-checkbox-label {
+  font-weight: 800;
+  color: #1b74e4;
+  font-size: 1.11em;
+  letter-spacing: -0.5px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.kalk-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 11px 0;
+  gap: 16px;
+}
+
+.kalk-checkbox-label {
+  font-weight: 700;
+  color: #1b74e4;
+  font-size: 1.06em;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.kalk-label {
+  margin-left: 7px;
+}
+
+.kalk-checkbox {
+  width: 22px;
+  height: 22px;
+  accent-color: #1b74e4;
+}
+
+.kalk-beschriftung {
+  margin-left: 12px;
+  width: 220px;
+  font-weight: 500;
+  border-radius: 7px;
+  padding: 7px 10px;
+  font-size: 1.03em;
+}
