@@ -62,6 +62,9 @@ type KundeConfig = {
   palletUnits: number[];
   packagingMaterial: number[];
   packagingTime: number[];
+  abholadresse?: Adresse;
+  lieferadresse_abweichend?: boolean;   // ← HINZUFÜGEN!
+  lieferadresse?: Adresse;              // ← (optional, falls noch nicht drin)
   preise: {
     kmRateTable: number[][];
   };
@@ -109,16 +112,16 @@ export default function AssetpreisKalkulator({ config, kundennummer }: Props) {
     ort: "",
     land: "",
   });
+  // Abweichende Lieferadresse (Checkbox + Zieladresse)
+const [abweichendeLieferadresse, setAbweichendeLieferadresse] = useState(
+  !!config.lieferadresse_abweichend
+);
 
-  // Zieladresse (abweichende Lieferadresse, Standard: leer)
-  const [abweichendeLieferadresse, setAbweichendeLieferadresse] = useState(false);
-  const [zieladresse, setZieladresse] = useState<Adresse>({
-    firmenname: "",
-    strasse: "",
-    plz: "",
-    ort: "",
-    land: "",
-  });
+const [zieladresse, setZieladresse] = useState<Adresse>(
+  config.lieferadresse_abweichend && config.lieferadresse
+    ? { ...config.lieferadresse }
+    : { firmenname: "", strasse: "", plz: "", ort: "", land: "" }
+);
 
   // Change Handler
   const handleAdresseChange = (

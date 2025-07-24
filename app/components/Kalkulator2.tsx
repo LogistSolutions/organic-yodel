@@ -15,6 +15,8 @@ type KundeConfig = {
   staffeln?: Staffel[][];
   rechnung?: Adresse;
   abholadresse?: Adresse;
+  lieferadresse_abweichend?: boolean;
+  lieferadresse?: Adresse;
 };
 type Props = { config: KundeConfig; kundennummer: string };
 
@@ -113,6 +115,14 @@ export default function StueckpreisKalkulator({ config, kundennummer }: Props) {
     land: config?.abholadresse?.land || "",
   });
 
+  // Lieferadresse (optional)
+  const [abweichendeLieferadresse, setAbweichendeLieferadresse] = useState(
+    config.lieferadresse_abweichend || false
+  );
+  const [lieferadresse, setLieferadresse] = useState<Adresse>(
+    config.lieferadresse || { firmenname: "", strasse: "", plz: "", ort: "", land: "" }
+  );
+
   // Eingabe-Handler (begrenzt auf 0...MAX_MENGE)
   function handleMengeChange(idx: number, value: string) {
     let menge = value === "" ? "" : Math.max(0, Math.min(MAX_MENGE, Number(value.replace(/[^0-9]/g, ""))));
@@ -124,10 +134,10 @@ export default function StueckpreisKalkulator({ config, kundennummer }: Props) {
   }
 
   // Summieren der Mengen, Limit und Warnung
-const totalMenge = quantities.reduce(
-  (sum: number, q) => sum + (typeof q === "number" ? q : 0),
-  0
-);
+  const totalMenge = quantities.reduce(
+    (sum: number, q) => sum + (typeof q === "number" ? q : 0),
+    0
+  );
 
   React.useEffect(() => {
     setWarnung(totalMenge > MAX_MENGE);
@@ -225,6 +235,10 @@ const totalMenge = quantities.reduce(
       "",
       `Rechnungsadresse: ${rechnungsadresse.firmenname}, ${rechnungsadresse.strasse}, ${rechnungsadresse.plz} ${rechnungsadresse.ort}, ${rechnungsadresse.land}`,
       "",
+      abweichendeLieferadresse
+        ? `Lieferadresse: ${lieferadresse.firmenname}, ${lieferadresse.strasse}, ${lieferadresse.plz} ${lieferadresse.ort}, ${lieferadresse.land}`
+        : "Abweichende Lieferadresse: Nein",
+      "",
       `Abholadresse: ${abholadresse.firmenname}, ${abholadresse.strasse}, ${abholadresse.plz} ${abholadresse.ort}, ${abholadresse.land}`,
       "",
       `Bemerkungen: ${bemerkungen.trim() ? bemerkungen.trim() : "Keine"}`
@@ -294,6 +308,11 @@ const totalMenge = quantities.reduce(
         </div>
         <hr/>
         <div>Rechnungsadresse: ${rechnungsadresse.firmenname}, ${rechnungsadresse.strasse}, ${rechnungsadresse.plz} ${rechnungsadresse.ort}, ${rechnungsadresse.land}</div>
+        ${
+          abweichendeLieferadresse
+            ? `<div>Lieferadresse: ${lieferadresse.firmenname}, ${lieferadresse.strasse}, ${lieferadresse.plz} ${lieferadresse.ort}, ${lieferadresse.land}</div>`
+            : "<div>Abweichende Lieferadresse: Nein</div>"
+        }
         <div>Abholadresse: ${abholadresse.firmenname}, ${abholadresse.strasse}, ${abholadresse.plz} ${abholadresse.ort}, ${abholadresse.land}</div>
         <div style="margin-top:10px"><b>Bemerkungen:</b><br/>${bemerkungen.trim() ? bemerkungen.trim().replace(/\n/g, "<br/>") : "Keine"}</div>
       </body>
@@ -462,6 +481,44 @@ const totalMenge = quantities.reduce(
           }}
         />
       ))}
+      {/* Abweichende Lieferadresse */}
+      <div style={{ margin: "1.5em 0 0.3em 0" }}>
+        <label style={{ display: "flex", alignItems: "center", gap: 10, fontWeight: 600 }}>
+          <input
+            type="checkbox"
+            checked={abweichendeLieferadresse}
+            onChange={e => setAbweichendeLieferadresse(e.target.checked)}
+            style={{ accentColor: "#008060", width: 18, height: 18 }}
+          />
+          Abweichende Lieferadresse
+        </label>
+      </div>
+      {abweichendeLieferadresse && (
+        <fieldset className="zieladresse-feldset" style={{ marginBottom: 18, marginTop: 8 }}>
+          <legend style={{ color: "#2aabe2", fontWeight: 700, fontSize: "1.07em" }}>
+            Lieferadresse (abweichend)
+          </legend>
+          {["firmenname", "strasse", "plz", "ort", "land"].map(field => (
+            <input
+              key={field}
+              name={field}
+              placeholder={field.charAt(0).toUpperCase() + field.slice(1)}
+              value={lieferadresse[field as keyof Adresse] || ""}
+              onChange={e => setLieferadresse(old => ({ ...old, [field]: e.target.value }))}
+              required
+              style={{
+                width: "100%",
+                marginBottom: 6,
+                background: "#f7fafb",
+                border: "1px solid #dbe9f0",
+                padding: "7px 7px",
+                borderRadius: 6,
+                fontSize: "0.97em"
+              }}
+            />
+          ))}
+        </fieldset>
+      )}
       {/* Abholadresse */}
       <div style={{ margin: "14px 0 6px", fontWeight: 600, color: "#248184", fontSize: "0.96em" }}>Abholadresse</div>
       {["firmenname", "strasse", "plz", "ort", "land"].map(field => (
