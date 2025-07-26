@@ -6,8 +6,7 @@
     "dev": "next dev --turbopack",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint",
-    "postinstall": "echo \"→ PLAYWRIGHT POSTINSTALL START\" && npx playwright install chromium && echo \"→ PLAYWRIGHT POSTINSTALL DONE\""
+    "lint": "next lint"
   },
   "dependencies": {
     "@radix-ui/react-label": "^2.1.7",
@@ -18,7 +17,7 @@
     "next": "15.4.2",
     "nodemailer": "^7.0.5",
     "pdf-lib": "^1.17.1",
-    "playwright": "^1.54.1",
+    "playwright-chromium": "^1.54.1",
     "puppeteer": "^24.14.0",
     "react": "19.1.0",
     "react-dom": "19.1.0",
