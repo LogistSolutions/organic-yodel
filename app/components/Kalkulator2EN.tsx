@@ -72,7 +72,7 @@ function PdfDownloadButton({ getPdfHtml }: { getPdfHtml: () => string }) {
         textAlign: "center",
       }}
     >
-      {loading ? "PDF wird erstellt..." : "PDF herunterladen"}
+      {loading ? "PDF wird erstellt..." : "PDF download"}
     </button>
   );
 }
@@ -180,8 +180,8 @@ export default function StueckpreisKalkulator({ config, kundennummer }: Props) {
 
   // Info: Wurde Pauschale verwendet?
   const infoText = hasPauschale
-    ? "Es handelt sich um einen Pauschalbetrag (nur die teuerste belegte Pauschale wird angewandt; andere Kategorien werden ggf. als Stückpreis gerechnet)."
-    : "Es handelt sich um eine Staffelberechnung (alle belegten Kategorien im Stückpreisbereich).";
+    ? "This is a flat rate (only the most expensive documented flat rate is applied)."
+    : "This is a tiered calculation (all occupied categories in the unit price range).";
 
   // Spaltenbreiten für ASCII-Mail
   const col1 = 71, col2 = 6, col3 = 18, col4 = 10;
@@ -195,7 +195,8 @@ export default function StueckpreisKalkulator({ config, kundennummer }: Props) {
     const menge = (quantities[idx] !== "" && quantities[idx] !== undefined) ? String(quantities[idx]) : "";
     const s = staffelInfos[idx];
     let preisStr = "";
-    if (s) preisStr = (s.art === "Pauschale" ? "Pauschale " : "Stückpreis ") + s.preis.toLocaleString("de-DE", { minimumFractionDigits: 2 }) + "€";
+    if (s) preisStr = (s.art === "flat rate" ? "flate rate " : "unit price ") + s.preis.toLocaleString("de-DE", { minimumFractionDigits: 2 }) + "€";
+    //if (s) preisStr = (s.art === "Pauschale" ? "Pauschale " : "Stückpreis ") + s.preis.toLocaleString("de-DE", { minimumFractionDigits: 2 }) + "€";
     let summe = "";
     if (hasPauschale && idx === pauschaleIdx) {
       summe = maxPauschale.toLocaleString("de-DE", { minimumFractionDigits: 2 });
@@ -280,14 +281,14 @@ export default function StueckpreisKalkulator({ config, kundennummer }: Props) {
         </style>
       </head>
       <body>
-        <h2>Stückpreis-Kalkulator – ${rechnungsadresse.firmenname}${reference ? " – " + reference : ""}</h2>
+        <h2>Unit Price Calculator – ${rechnungsadresse.firmenname}${reference ? " – " + reference : ""}</h2>
         <table>
           <thead>
             <tr>
               <th>Position</th>
-              <th>Anzahl</th>
-              <th>Staffelpreis</th>
-              <th>Gesamt (€)</th>
+              <th>Quantity</th>
+              <th>Tiered price</th>
+              <th>Total (€)</th>
             </tr>
           </thead>
           <tbody>${rowsHtml}</tbody>
@@ -334,10 +335,10 @@ export default function StueckpreisKalkulator({ config, kundennummer }: Props) {
         textAlign: "center", color: "#1188b8", marginBottom: 7, fontWeight: 900,
         fontSize: "1.7rem", letterSpacing: 0.5
       }}>
-        Stückpreis-Kalkulator
+        Unit Price Calculator
       </h2>
       <div style={{ textAlign: "center", color: "#888", marginBottom: 18, fontWeight: 700 }}>
-        Kundennummer: <span style={{ color: "#456" }}>{kundennummer}</span>
+        Customer Nr.: <span style={{ color: "#456" }}>{kundennummer}</span>
       </div>
       <table style={{
         width: "100%", borderCollapse: "collapse", fontSize: "0.85em", marginBottom: 8
@@ -345,16 +346,17 @@ export default function StueckpreisKalkulator({ config, kundennummer }: Props) {
         <thead>
           <tr style={{ background: "#f4fafd" }}>
             <th style={{ padding: 5, border: "1px solid #dee4ef", minWidth: 115 }}>Position</th>
-            <th style={{ padding: 5, border: "1px solid #dee4ef", minWidth: 56, textAlign: "right" }}>Menge</th>
-            <th style={{ padding: 5, border: "1px solid #dee4ef", minWidth: 108, textAlign: "right" }}>Staffelpreis</th>
-            <th style={{ padding: 5, border: "1px solid #dee4ef", minWidth: 98, textAlign: "right" }}>Gesamt (€)</th>
+            <th style={{ padding: 5, border: "1px solid #dee4ef", minWidth: 56, textAlign: "right" }}>Quantity</th>
+            <th style={{ padding: 5, border: "1px solid #dee4ef", minWidth: 108, textAlign: "right" }}>Tiered price</th>
+            <th style={{ padding: 5, border: "1px solid #dee4ef", minWidth: 98, textAlign: "right" }}>Total (€)</th>
           </tr>
         </thead>
         <tbody>
           {labels.map((label, idx) => {
             const menge = quantities[idx];
             const s = staffelInfos[idx];
-            const preisStr = s ? (s.art === "Pauschale" ? "Pauschale " : "Stückpreis ") + s.preis.toLocaleString("de-DE", { minimumFractionDigits: 2 }) + " €" : "-";
+            //const preisStr = s ? (s.art === "Pauschale" ? "Pauschale " : "Stückpreis ") + s.preis.toLocaleString("de-DE", { minimumFractionDigits: 2 }) + " €" : "-";
+            const preisStr = s ? (s.art === "flat rate" ? "flat rate " : "Unit price ") + s.preis.toLocaleString("de-DE", { minimumFractionDigits: 2 }) + " €" : "-";
             let summe = "0,00";
             if (hasPauschale && idx === pauschaleIdx) {
               summe = maxPauschale.toLocaleString("de-DE", { minimumFractionDigits: 2 });
@@ -364,7 +366,7 @@ export default function StueckpreisKalkulator({ config, kundennummer }: Props) {
             return (
               <tr key={idx}>
                 <td style={{
-                  fontWeight: 700, color: "#0d53a3", fontSize: "0.64em", paddingRight: 5, verticalAlign: "middle"
+                  fontWeight: 700, color: "#0d53a3", fontSize: "0.94em", paddingRight: 5, verticalAlign: "middle"
                 }}>
                   {label || <span style={{ color: "#e3e3e3" }}>–</span>}
                 </td>
@@ -376,7 +378,7 @@ export default function StueckpreisKalkulator({ config, kundennummer }: Props) {
                     value={quantities[idx]}
                     onChange={e => handleMengeChange(idx, e.target.value)}
                     style={{
-                      width: 60, fontWeight: 700, fontSize: "0.60em",
+                      width: 60, fontWeight: 700, fontSize: "1.01em",
                       textAlign: "right", background: "#f6fafc", border: "1.1px solid #e0e7f6",
                       borderRadius: 8, letterSpacing: "0.07em"
                     }}
@@ -397,7 +399,7 @@ export default function StueckpreisKalkulator({ config, kundennummer }: Props) {
         </tbody>
         <tfoot>
           <tr style={{ background: "#f6fafd", fontWeight: 700 }}>
-            <td style={{ textAlign: "right", borderTop: "2px solid #c9e2fb" }}>Summe:</td>
+            <td style={{ textAlign: "right", borderTop: "2px solid #c9e2fb" }}>sum:</td>
             <td style={{ borderTop: "2px solid #c9e2fb" }}>{totalMenge}</td>
             <td style={{ borderTop: "2px solid #c9e2fb" }}></td>
             <td style={{ borderTop: "2px solid #c9e2fb" }}>
@@ -427,7 +429,7 @@ export default function StueckpreisKalkulator({ config, kundennummer }: Props) {
         marginTop: 5,
         textAlign: "center"
       }}>
-        Durchschnittlicher Stückpreis:{" "}
+        Average unit price:{" "}
         <span style={{ fontWeight: 900, fontSize: "1.15em" }}>
           {totalMenge > 0 && gesamt > 0
             ? (gesamt / totalMenge).toLocaleString("de-DE", { minimumFractionDigits: 2 }) + " €"
@@ -443,13 +445,13 @@ export default function StueckpreisKalkulator({ config, kundennummer }: Props) {
       </div>
       {/* Formularfelder */}
       <div style={{ margin: "17px 0 9px" }}>
-        <div style={{ fontWeight: 600, color: "#134b5b", marginBottom: 5 }}>Referenz</div>
+        <div style={{ fontWeight: 600, color: "#134b5b", marginBottom: 5 }}>Reference</div>
         <input
           type="text"
           className="input-modern"
           value={reference}
           onChange={e => setReference(e.target.value)}
-          placeholder="z.B. Auftragsnummer"
+          placeholder="e.q. order number, project name, etc."
           style={{
             width: "100%",
             padding: "10px 8px",
@@ -460,8 +462,8 @@ export default function StueckpreisKalkulator({ config, kundennummer }: Props) {
         />
       </div>
       {/* Rechnungsadresse */}
-      <div style={{ margin: "12px 0 6px", fontWeight: 600, color: "#248184", fontSize: "0.96em" }}>Rechnungsadresse</div>
-      {["firmenname", "strasse", "plz", "ort", "land"].map(field => (
+      <div style={{ margin: "12px 0 6px", fontWeight: 600, color: "#248184", fontSize: "0.96em" }}>Invoice address</div>
+      {["Companyname", "Street", "Postcode", "City", "Country"].map(field => (
         <input
           key={field}
           name={field}
@@ -490,15 +492,15 @@ export default function StueckpreisKalkulator({ config, kundennummer }: Props) {
             onChange={e => setAbweichendeLieferadresse(e.target.checked)}
             style={{ accentColor: "#008060", width: 18, height: 18 }}
           />
-          Abweichende Lieferadresse
+          Different delivery address
         </label>
       </div>
       {abweichendeLieferadresse && (
         <fieldset className="zieladresse-feldset" style={{ marginBottom: 18, marginTop: 8 }}>
           <legend style={{ color: "#2aabe2", fontWeight: 700, fontSize: "1.07em" }}>
-            Lieferadresse (abweichend)
+            Delivery address (different to invoice)
           </legend>
-          {["firmenname", "strasse", "plz", "ort", "land"].map(field => (
+          {["Companyname", "Street", "Postcode", "City", "Country"].map(field => (
             <input
               key={field}
               name={field}
@@ -520,8 +522,8 @@ export default function StueckpreisKalkulator({ config, kundennummer }: Props) {
         </fieldset>
       )}
       {/* Abholadresse */}
-      <div style={{ margin: "14px 0 6px", fontWeight: 600, color: "#248184", fontSize: "0.96em" }}>Abholadresse</div>
-      {["firmenname", "strasse", "plz", "ort", "land"].map(field => (
+      <div style={{ margin: "14px 0 6px", fontWeight: 600, color: "#248184", fontSize: "0.96em" }}>Pickup address</div>
+      {["Companyname", "Street", "Postcode", "City", "Country"].map(field => (
         <input
           key={field}
           name={field}
@@ -540,11 +542,11 @@ export default function StueckpreisKalkulator({ config, kundennummer }: Props) {
         />
       ))}
       {/* Bemerkungen */}
-      <div style={{ margin: "13px 0 6px", fontWeight: 600, color: "#248184", fontSize: "0.96em" }}>Bemerkungen</div>
+      <div style={{ margin: "13px 0 6px", fontWeight: 600, color: "#248184", fontSize: "0.96em" }}>Remarks</div>
       <textarea
         rows={2}
         className="input-modern"
-        placeholder="Pflicht: Ansprechpartner Abholdadresse. Optional: Hinweise, Wünsche oder Rückfragen …"
+        placeholder="Mandatory: Contact person/phone of pickup address. Optional: Notes, requests, or questions..."
         value={bemerkungen}
         onChange={e => setBemerkungen(e.target.value)}
         style={{
@@ -579,7 +581,7 @@ export default function StueckpreisKalkulator({ config, kundennummer }: Props) {
             textAlign: "center",
           }}
         >
-          Per E-Mail senden
+          Send per mail
         </a>
       </div>
     </div>

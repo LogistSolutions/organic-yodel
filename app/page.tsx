@@ -39,7 +39,6 @@ export default function LandingPage() {
       router.push("/admin");
       return;
     }
-
     if (!inputNr.trim()) {
       setError("Bitte Kundennummer eingeben.");
       return;
@@ -111,7 +110,7 @@ export default function LandingPage() {
           <input
             type="text"
             value={inputPlz}
-            onChange={e => setInputPlz(e.target.value.replace(/[^0-9]/g, ""))}
+            onChange={e => setInputPlz(e.target.value.replace(/[^a-zA-Z0-9 ]/g, ""))}
             placeholder="Postleitzahl"
             style={{ width: "100%", fontSize: "1.12em", marginBottom: 20 }}
             autoFocus
