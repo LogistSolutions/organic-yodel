@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "postinstall": "npx playwright install chromium"
+    "postinstall": "echo \"→ PLAYWRIGHT POSTINSTALL START\" && npx playwright install chromium && echo \"→ PLAYWRIGHT POSTINSTALL DONE\""
   },
   "dependencies": {
     "@radix-ui/react-label": "^2.1.7",
