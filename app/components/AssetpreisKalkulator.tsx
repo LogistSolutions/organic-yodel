@@ -1,6 +1,5 @@
 "use client";
 import React, { useState } from "react";
-
 // ===== PDF-Download-Button =====
 function PdfDownloadButton({ getPdfHtml }: { getPdfHtml: () => string }) {
   const [loading, setLoading] = useState(false);
@@ -58,15 +57,15 @@ function PdfDownloadButton({ getPdfHtml }: { getPdfHtml: () => string }) {
 
 // ===== Haupt-Komponente =====
 type KundeConfig = {
-  labels: string[];
-  palletUnits: number[];
-  packagingMaterial: number[];
-  packagingTime: number[];
+  labels?: string[];
+  palletUnits?: number[];
+  packagingMaterial?: number[];
+  packagingTime?: number[];
   abholadresse?: Adresse;
   lieferadresse_abweichend?: boolean;   // ← HINZUFÜGEN!
   lieferadresse?: Adresse;              // ← (optional, falls noch nicht drin)
-  preise: {
-    kmRateTable: number[][];
+  preise?: {
+    kmRateTable?: number[][];
   };
   rechnung?: {
     firmenname?: string;
@@ -90,7 +89,7 @@ type Props = { config: KundeConfig; kundennummer: string };
 export default function AssetpreisKalkulator({ config, kundennummer }: Props) {
   const [km, setKm] = useState<number | "">("");
   const [quantities, setQuantities] = useState<(number | "")[]>(
-    Array(config.labels.length).fill("")
+  Array(config.labels?.length ?? 0).fill("")
   );
   const [reference, setReference] = useState("");
   const [bemerkungen, setBemerkungen] = useState(""); // <---- Neu
@@ -142,7 +141,10 @@ const palletUnits = config.palletUnits ?? [];
 const totalPallets = quantities.reduce(
   (acc: number, val, idx) => {
     const divisor = palletUnits[idx];
-    if (!divisor) return acc;
+    if (typeof divisor !== "number" || divisor <= 0) {
+      console.warn(`Ungültiger palletUnit-Wert an Index ${idx}:`, divisor);
+      return acc;
+    }
     return acc + safeNum(val) / divisor;
   },
   0
@@ -187,26 +189,20 @@ if (roundedPallets >= 12) {
 }
 let transportCost = kmAdjusted * kmRate + zuschlag;
 
+console.log("quantities:", quantities);
+console.log("palletUnits:", config.palletUnits);
+console.log("config.packagingMaterial:", config.packagingMaterial);
+console.log("config.packagingTime:", config.packagingTime);
 
 const totalMaterial = quantities.reduce(
   (acc: number, val, idx) =>
-    acc +
-    safeNum(val) *
-      (Array.isArray(config.packagingMaterial) && typeof config.packagingMaterial[idx] === "number"
-        ? config.packagingMaterial[idx]
-        : 0),
+    acc + safeNum(val) * safeNum(config.packagingMaterial?.[idx]),
   0
 );
 
 const totalPackaging = quantities.reduce(
   (acc: number, val, idx) =>
-    acc +
-    (safeNum(val) *
-      (Array.isArray(config.packagingTime) && typeof config.packagingTime[idx] === "number"
-        ? config.packagingTime[idx]
-        : 0) *
-      40) /
-      60,
+    acc + (safeNum(val) * safeNum(config.packagingTime?.[idx]) * 40) / 60,
   0
 );
 
@@ -515,7 +511,6 @@ const getPdfHtml = () => {
 
         {/* --- BUTTONS --- */}
         <div style={{ display: "flex", gap: "18px", marginTop: 18, justifyContent: "center" }}>
-          <PdfDownloadButton getPdfHtml={getPdfHtml} />
           {!showBanner && (
             <a
               href={mailTo}

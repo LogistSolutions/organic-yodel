@@ -1,6 +1,5 @@
 "use client";
 import React, { useState } from "react";
-
 // ===== PDF-Download-Button =====
 function PdfDownloadButton({ getPdfHtml }: { getPdfHtml: () => string }) {
   const [loading, setLoading] = useState(false);
@@ -51,7 +50,7 @@ function PdfDownloadButton({ getPdfHtml }: { getPdfHtml: () => string }) {
         textAlign: "center",
       }}
     >
-      {loading ? "PDF wird erstellt..." : "PDF download"}
+      {loading ? "PDF wird erstellt..." : "Download PDF"}
     </button>
   );
 }
@@ -65,7 +64,7 @@ type KundeConfig = {
   abholadresse?: Adresse;
   lieferadresse_abweichend?: boolean;   // ← HINZUFÜGEN!
   lieferadresse?: Adresse;              // ← (optional, falls noch nicht drin)
-  preise: {
+  preise?: {
     kmRateTable: number[][];
   };
   rechnung?: {
@@ -93,9 +92,9 @@ export default function AssetpreisKalkulator({ config, kundennummer }: Props) {
     Array(config.labels.length).fill("")
   );
   const [reference, setReference] = useState("");
-  const [bemerkungen, setBemerkungen] = useState(""); // <---- Neu
+  const [bemerkungen, setRemarks] = useState(""); // <---- Neu
 
-  // Rechnungsadresse (aus admin)
+  // Invoice Address (aus admin)
   const [rechnungsadresse] = useState<Adresse>({
     firmenname: config.rechnung?.firmenname || "",
     strasse: config.rechnung?.strasse || "",
@@ -104,7 +103,7 @@ export default function AssetpreisKalkulator({ config, kundennummer }: Props) {
     land: config.rechnung?.land || "",
   });
 
-  // Abholadresse (immer leer, oder vorausgefüllt je nach Wunsch)
+  // Pickup Address (immer leer, oder vorausgefüllt je nach Wunsch)
   const [abholadresse, setAbholadresse] = useState<Adresse>({
     firmenname: "",
     strasse: "",
@@ -112,7 +111,7 @@ export default function AssetpreisKalkulator({ config, kundennummer }: Props) {
     ort: "",
     land: "",
   });
-  // Abweichende Lieferadresse (Checkbox + Zieladresse)
+  // Abweichende Delivery Address (Checkbox + Zieladresse)
 const [abweichendeLieferadresse, setAbweichendeLieferadresse] = useState(
   !!config.lieferadresse_abweichend
 );
@@ -142,7 +141,10 @@ const palletUnits = config.palletUnits ?? [];
 const totalPallets = quantities.reduce(
   (acc: number, val, idx) => {
     const divisor = palletUnits[idx];
-    if (!divisor) return acc;
+    if (typeof divisor !== "number" || divisor <= 0) {
+      console.warn(`Ungültiger palletUnit-Wert an Index ${idx}:`, divisor);
+      return acc;
+    }
     return acc + safeNum(val) / divisor;
   },
   0
@@ -187,26 +189,20 @@ if (roundedPallets >= 12) {
 }
 let transportCost = kmAdjusted * kmRate + zuschlag;
 
+console.log("quantities:", quantities);
+console.log("palletUnits:", config.palletUnits);
+console.log("config.packagingMaterial:", config.packagingMaterial);
+console.log("config.packagingTime:", config.packagingTime);
 
 const totalMaterial = quantities.reduce(
   (acc: number, val, idx) =>
-    acc +
-    safeNum(val) *
-      (Array.isArray(config.packagingMaterial) && typeof config.packagingMaterial[idx] === "number"
-        ? config.packagingMaterial[idx]
-        : 0),
+    acc + safeNum(val) * safeNum(config.packagingMaterial?.[idx]),
   0
 );
 
 const totalPackaging = quantities.reduce(
   (acc: number, val, idx) =>
-    acc +
-    (safeNum(val) *
-      (Array.isArray(config.packagingTime) && typeof config.packagingTime[idx] === "number"
-        ? config.packagingTime[idx]
-        : 0) *
-      40) /
-      60,
+    acc + (safeNum(val) * safeNum(config.packagingTime?.[idx]) * 40) / 60,
   0
 );
 
@@ -233,9 +229,9 @@ const subject = `${rechnungsadresse.firmenname}${reference ? " – " + reference
     .join("\n");
 
   const bodyLines = [
-    `Kundennummer: ${kundennummer}`,
+    `Customer Number: ${kundennummer}`,
     `Kunde: ${rechnungsadresse.firmenname}`,
-    `Referenz: ${reference}`,
+    `Reference: ${reference}`,
     "",
     "Kalkulation:",
     "----------------------------------------",
@@ -243,18 +239,18 @@ const subject = `${rechnungsadresse.firmenname}${reference ? " – " + reference
     asciiRows,
     "----------------------------------------",
     `Gesamtstückzahl: ${totalQuantity}`,
-    `Palettenanzahl: ${roundedPallets}`,
+    `Palletsanzahl: ${roundedPallets}`,
     `Gesamtpreis netto: ${totalCost} €`,
     "",
-    `Rechnungsadresse: ${rechnungsadresse.firmenname}, ${rechnungsadresse.strasse}, ${rechnungsadresse.plz} ${rechnungsadresse.ort}, ${rechnungsadresse.land}`,
+    `Invoice Address: ${rechnungsadresse.firmenname}, ${rechnungsadresse.strasse}, ${rechnungsadresse.plz} ${rechnungsadresse.ort}, ${rechnungsadresse.land}`,
     "",
     abweichendeLieferadresse
-      ? `Lieferadresse: ${zieladresse.firmenname}, ${zieladresse.strasse}, ${zieladresse.plz} ${zieladresse.ort}, ${zieladresse.land}`
-      : "Abweichende Lieferadresse: Nein",
+      ? `Delivery Address: ${zieladresse.firmenname}, ${zieladresse.strasse}, ${zieladresse.plz} ${zieladresse.ort}, ${zieladresse.land}`
+      : "Abweichende Delivery Address: Nein",
     "",
-    `Abholadresse: ${abholadresse.firmenname}, ${abholadresse.strasse}, ${abholadresse.plz} ${abholadresse.ort}, ${abholadresse.land}`,
+    `Pickup Address: ${abholadresse.firmenname}, ${abholadresse.strasse}, ${abholadresse.plz} ${abholadresse.ort}, ${abholadresse.land}`,
     "",
-    `Bemerkungen: ${bemerkungen.trim() ? bemerkungen.trim() : "Keine"}`
+    `Remarks: ${bemerkungen.trim() ? bemerkungen.trim() : "None"}`
   ];
 const mailBody = encodeURIComponent(bodyLines.join('\n'));
 return `mailto:${empfaenger}?subject=${encodeURIComponent(subject)}&body=${mailBody}`;
@@ -309,19 +305,19 @@ const getPdfHtml = () => {
         <tbody>${rows}</tbody>
       </table>
       <p>Gesamtstückzahl: <b>${totalQuantity}</b></p>
-      <p>Palettenanzahl: <b>${roundedPallets}</b></p>
+      <p>Palletsanzahl: <b>${roundedPallets}</b></p>
       <p>Gesamtpreis netto: <b>${totalCost} €</b></p>
       <hr />
-      <p>Rechnungsadresse: ${rechnungsadresse.firmenname}, ${rechnungsadresse.strasse}, ${rechnungsadresse.plz} ${rechnungsadresse.ort}, ${rechnungsadresse.land}</p>
+      <p>Invoice Address: ${rechnungsadresse.firmenname}, ${rechnungsadresse.strasse}, ${rechnungsadresse.plz} ${rechnungsadresse.ort}, ${rechnungsadresse.land}</p>
       ${
         abweichendeLieferadresse
-          ? `<p>Lieferadresse: ${zieladresse.firmenname}, ${zieladresse.strasse}, ${zieladresse.plz} ${zieladresse.ort}, ${zieladresse.land}</p>`
-          : "<p>Abweichende Lieferadresse: Nein</p>"
+          ? `<p>Delivery Address: ${zieladresse.firmenname}, ${zieladresse.strasse}, ${zieladresse.plz} ${zieladresse.ort}, ${zieladresse.land}</p>`
+          : "<p>Abweichende Delivery Address: Nein</p>"
       }
-      <p>Abholadresse: ${abholadresse.firmenname}, ${abholadresse.strasse}, ${abholadresse.plz} ${abholadresse.ort}, ${abholadresse.land}</p>
+      <p>Pickup Address: ${abholadresse.firmenname}, ${abholadresse.strasse}, ${abholadresse.plz} ${abholadresse.ort}, ${abholadresse.land}</p>
       <div class="remarks-box">
-        <b>Bemerkungen:</b><br/>
-        ${bemerkungen.trim() ? bemerkungen.trim().replace(/\n/g, "<br/>") : "Keine"}
+        <b>Remarks:</b><br/>
+        ${bemerkungen.trim() ? bemerkungen.trim().replace(/\n/g, "<br/>") : "None"}
       </div>
     </body>
     </html>
@@ -340,7 +336,7 @@ const getPdfHtml = () => {
         <img src="/LogistLogo.png" alt="Firmenlogo" style={{ maxHeight: 64, maxWidth: 210, margin: "0 auto", display: "block" }} />
       </div>
       <h1 style={{ textAlign: "center", marginBottom: 10 }}>
-        Asset Price Calculator
+        Assetpreis-Kalkulator
         <br />
         <span style={{
           fontSize: "1.12rem",
@@ -350,7 +346,7 @@ const getPdfHtml = () => {
           display: "block",
           marginTop: 6,
         }}>
-          Customer Nr.: <b>{kundennummer}</b>
+          Customer Number: <b>{kundennummer}</b>
         </span>
       </h1>
 
@@ -384,7 +380,7 @@ const getPdfHtml = () => {
                       updated[idx] = e.target.value === "" ? "" : Number(e.target.value);
                       setQuantities(updated);
                     }}
-                    placeholder="Quantity"
+                    placeholder="number"
                   />
                 </td>
               </tr>
@@ -395,8 +391,8 @@ const getPdfHtml = () => {
         <table className="result-table">
           <thead>
             <tr>
-              <th>∅ Price per Unit</th>
-              <th>Number of pallets</th>
+              <th>∅ unit price</th>
+              <th>pallets amount</th>
               <th>total net price</th>
             </tr>
           </thead>
@@ -411,7 +407,7 @@ const getPdfHtml = () => {
 
         {showBanner && (
           <div className="banner-warning">
-            For pallet quantities of 26 or more, you will receive a customized quote. Please send your request by email to <a href="mailto:dispo@logist.de">dispo@logist.de</a>.
+            For pallets exceeding 25, you will receive a customized quote. Please send your request by email to <a href="mailto:dispo@logist.de">dispo@logist.de</a>.
           </div>
         )}
 
@@ -422,26 +418,26 @@ const getPdfHtml = () => {
             className="input-modern"
             value={reference}
             onChange={e => setReference(e.target.value)}
-            placeholder="z.B. Order number or project name"
+            placeholder="e.q. ordernumber or project name"
           />
         </div>
 
-        {/* Rechnungsadresse */}
+        {/* Invoice Address */}
         <fieldset>
-          <legend>Invoice address</legend>
-          <input name="firmenname" placeholder="Companyname" value={rechnungsadresse.firmenname} disabled />
+          <legend>Invoice Address</legend>
+          <input name="firmenname" placeholder="Company name" value={rechnungsadresse.firmenname} disabled />
           <input name="strasse" placeholder="Street" value={rechnungsadresse.strasse} disabled />
-          <input name="plz" placeholder="Postcode" value={rechnungsadresse.plz} disabled />
+          <input name="plz" placeholder="PLZ" value={rechnungsadresse.plz} disabled />
           <input name="ort" placeholder="City" value={rechnungsadresse.ort} disabled />
           <input name="land" placeholder="Country" value={rechnungsadresse.land} disabled />
         </fieldset>
 
-        {/* Abholadresse */}
+        {/* Pickup Address */}
         <fieldset>
-          <legend>Pick-Up address</legend>
-          <input name="firmenname" placeholder="Companyname" value={abholadresse.firmenname} onChange={e => handleAdresseChange(setAbholadresse, e)} required />
+          <legend>Pickup Address</legend>
+          <input name="firmenname" placeholder="Company name" value={abholadresse.firmenname} onChange={e => handleAdresseChange(setAbholadresse, e)} required />
           <input name="strasse" placeholder="Street" value={abholadresse.strasse} onChange={e => handleAdresseChange(setAbholadresse, e)} required />
-          <input name="plz" placeholder="Postcode" value={abholadresse.plz} onChange={e => handleAdresseChange(setAbholadresse, e)} required />
+          <input name="plz" placeholder="PLZ" value={abholadresse.plz} onChange={e => handleAdresseChange(setAbholadresse, e)} required />
           <input name="ort" placeholder="City" value={abholadresse.ort} onChange={e => handleAdresseChange(setAbholadresse, e)} required />
           <input name="land" placeholder="Country" value={abholadresse.land} onChange={e => handleAdresseChange(setAbholadresse, e)} required />
         </fieldset>
@@ -455,17 +451,17 @@ const getPdfHtml = () => {
       onChange={e => setAbweichendeLieferadresse(e.target.checked)}
       style={{ accentColor: "#008060", width: 18, height: 18 }}
     />
-     Different destination address
+    Different destination address
   </label>
 </div>
 {abweichendeLieferadresse && (
   <fieldset className="zieladresse-feldset">
     <legend style={{ color: "#2aabe2", fontWeight: 700, fontSize: "1.07em" }}>
-      Lieferadresse (abweichend)
+      Delivery Address (different to invoice)
     </legend>
-    <input name="firmenname" placeholder="Company" value={zieladresse.firmenname} onChange={e => handleAdresseChange(setZieladresse, e)} required />
+    <input name="firmenname" placeholder="Company name" value={zieladresse.firmenname} onChange={e => handleAdresseChange(setZieladresse, e)} required />
     <input name="strasse" placeholder="Street" value={zieladresse.strasse} onChange={e => handleAdresseChange(setZieladresse, e)} required />
-    <input name="plz" placeholder="Postcode" value={zieladresse.plz} onChange={e => handleAdresseChange(setZieladresse, e)} required />
+    <input name="plz" placeholder="PLZ" value={zieladresse.plz} onChange={e => handleAdresseChange(setZieladresse, e)} required />
     <input name="ort" placeholder="City" value={zieladresse.ort} onChange={e => handleAdresseChange(setZieladresse, e)} required />
     <input name="land" placeholder="Country" value={zieladresse.land} onChange={e => handleAdresseChange(setZieladresse, e)} required />
   </fieldset>
@@ -491,9 +487,9 @@ const getPdfHtml = () => {
             id="bemerkungen"
             className="input-modern"
             rows={3}
-            placeholder="Mandatory: Contact person/phone at pickup address. Optional: Notes, requests, or questions..."
+            placeholder="Mandatory: Contact person and pickup address. Optional: Notes, requests, or questions..."
             value={bemerkungen}
-            onChange={e => setBemerkungen(e.target.value)}
+            onChange={e => setRemarks(e.target.value)}
             style={{
               width: "100%",
               minHeight: 58,
@@ -515,7 +511,6 @@ const getPdfHtml = () => {
 
         {/* --- BUTTONS --- */}
         <div style={{ display: "flex", gap: "18px", marginTop: 18, justifyContent: "center" }}>
-          <PdfDownloadButton getPdfHtml={getPdfHtml} />
           {!showBanner && (
             <a
               href={mailTo}
@@ -537,7 +532,7 @@ const getPdfHtml = () => {
                 textAlign: "center",
               }}
             >
-              Send per E-Mail 
+              send by E-Mail
             </a>
           )}
         </div>

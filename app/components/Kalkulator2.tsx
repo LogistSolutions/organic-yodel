@@ -195,12 +195,12 @@ export default function StueckpreisKalkulator({ config, kundennummer }: Props) {
     const menge = (quantities[idx] !== "" && quantities[idx] !== undefined) ? String(quantities[idx]) : "";
     const s = staffelInfos[idx];
     let preisStr = "";
-    if (s) preisStr = (s.art === "Pauschale" ? "Pauschale " : "Stückpreis ") + s.preis.toLocaleString("de-DE", { minimumFractionDigits: 2 }) + "€";
+    if (s) preisStr = (s.art === "Pauschale" ? "Pauschale " : "Stückpreis ") + s.preis.toLocaleString("de-DE", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + "€";
     let summe = "";
     if (hasPauschale && idx === pauschaleIdx) {
-      summe = maxPauschale.toLocaleString("de-DE", { minimumFractionDigits: 2 });
+      summe = maxPauschale.toLocaleString("de-DE", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     } else if (s && s.art !== "Pauschale" && typeof quantities[idx] === "number") {
-      summe = (quantities[idx] as number * s.preis).toLocaleString("de-DE", { minimumFractionDigits: 2 });
+      summe = (quantities[idx] as number * s.preis).toLocaleString("de-DE", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     } else {
       summe = "0,00";
     }
@@ -214,50 +214,55 @@ export default function StueckpreisKalkulator({ config, kundennummer }: Props) {
 
   // Mailto-Link generieren (mit korrektem return!)
   const mailTo = (() => {
-    const empfaenger = "dispo@logist.de";
-    const subject = `Stückpreis-Kalkulation – ${rechnungsadresse.firmenname}${reference ? " – " + reference : ""}`;
-    const bodyLines = [
-      `Kundennummer: ${kundennummer}`,
-      `Kunde: ${rechnungsadresse.firmenname}`,
-      `Referenz: ${reference}`,
-      "",
-      "Stückpreis-Kalkulation:",
-      trenner,
-      header,
-      trenner,
-      asciiRows,
-      trenner,
-      `Gesamtmenge: ${totalMenge}`,
-      `Gesamtsumme netto: ${gesamt.toLocaleString("de-DE", { minimumFractionDigits: 2 })} €`,
-      `Durchschnittlicher Stückpreis: ${totalMenge > 0 ? avgStueckpreis.toLocaleString("de-DE", { minimumFractionDigits: 2 }) + " €" : "–"}`,
-      "",
-      infoText,
-      "",
-      `Rechnungsadresse: ${rechnungsadresse.firmenname}, ${rechnungsadresse.strasse}, ${rechnungsadresse.plz} ${rechnungsadresse.ort}, ${rechnungsadresse.land}`,
-      "",
-      abweichendeLieferadresse
-        ? `Lieferadresse: ${lieferadresse.firmenname}, ${lieferadresse.strasse}, ${lieferadresse.plz} ${lieferadresse.ort}, ${lieferadresse.land}`
-        : "Abweichende Lieferadresse: Nein",
-      "",
-      `Abholadresse: ${abholadresse.firmenname}, ${abholadresse.strasse}, ${abholadresse.plz} ${abholadresse.ort}, ${abholadresse.land}`,
-      "",
-      `Bemerkungen: ${bemerkungen.trim() ? bemerkungen.trim() : "Keine"}`
-    ];
-    const mailBody = encodeURIComponent(bodyLines.join('\n'));
-    return `mailto:${empfaenger}?subject=${encodeURIComponent(subject)}&body=${mailBody}`;
-  })();
+  const empfaenger = "dispo@logist.de";
+  const subject = `Stückpreis-Kalkulation – ${rechnungsadresse.firmenname}${reference ? " – " + reference : ""}`;
+  const body = [
+    `Kundennummer: ${kundennummer}`,
+    `Kunde: ${rechnungsadresse.firmenname}`,
+    `Referenz: ${reference || "-"}`,
+    "",
+    "=== KALKULATION ===",
+    "",
+    ...labels.map((label, idx) => {
+      const menge = quantities[idx] || 0;
+      const s = staffelInfos[idx];
+      if (!s || menge === 0) return null;
+      const art = s.art === "Pauschale" ? "Pauschale" : "Stückpreis";
+      const einzelpreis = s.preis.toLocaleString("de-DE", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+      const summe = s.art === "Pauschale"
+        ? `${s.preis.toLocaleString("de-DE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} €`
+        : `${(menge * s.preis).toLocaleString("de-DE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} €`;
+      return `• ${label}: ${menge} × ${art} ${einzelpreis} €  →  ${summe}`;
+    }).filter(Boolean),
+    "",
+    `Gesamtmenge: ${totalMenge}`,
+    `Gesamtsumme netto: ${gesamt.toLocaleString("de-DE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} €`,
+    `Ø Stückpreis: ${avgStueckpreis.toLocaleString("de-DE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} €`,
+    "",
+    `Hinweis: ${infoText}`,
+    "",
+    `Rechnungsadresse: ${rechnungsadresse.firmenname}, ${rechnungsadresse.strasse}, ${rechnungsadresse.plz} ${rechnungsadresse.ort}, ${rechnungsadresse.land}`,
+    abweichendeLieferadresse
+      ? `Lieferadresse: ${lieferadresse.firmenname}, ${lieferadresse.strasse}, ${lieferadresse.plz} ${lieferadresse.ort}, ${lieferadresse.land}`
+      : "Lieferadresse: wie Rechnung",
+    `Abholadresse: ${abholadresse.firmenname}, ${abholadresse.strasse}, ${abholadresse.plz} ${abholadresse.ort}, ${abholadresse.land}`,
+    "",
+    `Bemerkungen: ${bemerkungen.trim() || " "}`
+  ];
+  return `mailto:${empfaenger}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body.join('\n'))}`;
+})();
 
   // PDF HTML-Generator (zeigt Gesamtsumme und Einzelzeilen + Staffelpreise!)
   const getPdfHtml = () => {
     const rowsHtml = labels.map((label, idx) => {
       const menge = quantities[idx] || "";
       const s = staffelInfos[idx];
-      const preisStr = s ? (s.art === "Pauschale" ? "Pauschale " : "Stückpreis ") + s.preis.toLocaleString("de-DE", { minimumFractionDigits: 2 }) + " €" : "-";
+      const preisStr = s ? (s.art === "Pauschale" ? "Pauschale " : "Stückpreis ") + s.preis.toLocaleString("de-DE", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " €" : "-";
       let summe = "0,00";
       if (hasPauschale && idx === pauschaleIdx) {
-        summe = maxPauschale.toLocaleString("de-DE", { minimumFractionDigits: 2 });
+        summe = maxPauschale.toLocaleString("de-DE", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
       } else if (s && s.art !== "Pauschale" && typeof quantities[idx] === "number") {
-        summe = (quantities[idx] as number * s.preis).toLocaleString("de-DE", { minimumFractionDigits: 2 });
+        summe = (quantities[idx] as number * s.preis).toLocaleString("de-DE", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
       }
       return `<tr>
         <td>${label || "-"}</td>
@@ -296,12 +301,12 @@ export default function StueckpreisKalkulator({ config, kundennummer }: Props) {
               <td style="text-align:right;font-weight:700;">Summe:</td>
               <td style="font-weight:700;">${totalMenge}</td>
               <td></td>
-              <td style="font-weight:700;">${gesamt.toLocaleString("de-DE", { minimumFractionDigits: 2 })} €</td>
+              <td style="font-weight:700;">${gesamt.toLocaleString("de-DE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} €</td>
             </tr>
           </tfoot>
         </table>
         <div style="margin:10px 0"><b>Durchschnittlicher Stückpreis: ${
-          totalMenge > 0 ? avgStueckpreis.toLocaleString("de-DE", { minimumFractionDigits: 2 }) + " €" : "–"
+          totalMenge > 0 ? avgStueckpreis.toLocaleString("de-DE", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " €" : "–"
         }</b></div>
         <div style="margin:6px 0 16px 0;">
         <b>${infoText}</b>
@@ -354,17 +359,17 @@ export default function StueckpreisKalkulator({ config, kundennummer }: Props) {
           {labels.map((label, idx) => {
             const menge = quantities[idx];
             const s = staffelInfos[idx];
-            const preisStr = s ? (s.art === "Pauschale" ? "Pauschale " : "Stückpreis ") + s.preis.toLocaleString("de-DE", { minimumFractionDigits: 2 }) + " €" : "-";
+            const preisStr = s ? (s.art === "Pauschale" ? "Pauschale " : "Stückpreis ") + s.preis.toLocaleString("de-DE", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " €" : "-";
             let summe = "0,00";
             if (hasPauschale && idx === pauschaleIdx) {
-              summe = maxPauschale.toLocaleString("de-DE", { minimumFractionDigits: 2 });
+              summe = maxPauschale.toLocaleString("de-DE", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
             } else if (s && s.art !== "Pauschale" && typeof quantities[idx] === "number") {
-              summe = (quantities[idx] as number * s.preis).toLocaleString("de-DE", { minimumFractionDigits: 2 });
+              summe = (quantities[idx] as number * s.preis).toLocaleString("de-DE", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
             }
             return (
               <tr key={idx}>
                 <td style={{
-                  fontWeight: 700, color: "#0d53a3", fontSize: "0.64em", paddingRight: 5, verticalAlign: "middle"
+                  fontWeight: 700, color: "#0d53a3", fontSize: "0.84em", paddingRight: 5, verticalAlign: "middle"
                 }}>
                   {label || <span style={{ color: "#e3e3e3" }}>–</span>}
                 </td>
@@ -376,7 +381,7 @@ export default function StueckpreisKalkulator({ config, kundennummer }: Props) {
                     value={quantities[idx]}
                     onChange={e => handleMengeChange(idx, e.target.value)}
                     style={{
-                      width: 60, fontWeight: 700, fontSize: "0.60em",
+                      width: 60, fontWeight: 700, fontSize: "0.70em",
                       textAlign: "right", background: "#f6fafc", border: "1.1px solid #e0e7f6",
                       borderRadius: 8, letterSpacing: "0.07em"
                     }}
@@ -401,7 +406,7 @@ export default function StueckpreisKalkulator({ config, kundennummer }: Props) {
             <td style={{ borderTop: "2px solid #c9e2fb" }}>{totalMenge}</td>
             <td style={{ borderTop: "2px solid #c9e2fb" }}></td>
             <td style={{ borderTop: "2px solid #c9e2fb" }}>
-              {gesamt ? gesamt.toLocaleString("de-DE", { minimumFractionDigits: 2 }) + " €" : "–"}
+              {gesamt ? gesamt.toLocaleString("de-DE", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " €" : "–"}
             </td>
           </tr>
         </tfoot>
@@ -430,7 +435,7 @@ export default function StueckpreisKalkulator({ config, kundennummer }: Props) {
         Durchschnittlicher Stückpreis:{" "}
         <span style={{ fontWeight: 900, fontSize: "1.15em" }}>
           {totalMenge > 0 && gesamt > 0
-            ? (gesamt / totalMenge).toLocaleString("de-DE", { minimumFractionDigits: 2 }) + " €"
+            ? (gesamt / totalMenge).toLocaleString("de-DE", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " €"
             : "–"}
         </span>
       </div>
@@ -557,29 +562,28 @@ export default function StueckpreisKalkulator({ config, kundennummer }: Props) {
         }}
       />
       {/* --- BUTTONS --- */}
-      <div style={{ display: "flex", gap: "18px", marginTop: 18, justifyContent: "center" }}>
-        <PdfDownloadButton getPdfHtml={getPdfHtml} />
-        <a
-          href={mailTo}
-          className="cta-btn"
-          style={{
-            display: "inline-block",
-            background: "#0053B3",
-            color: "#fff",
-            border: "none",
-            borderRadius: 7,
-            padding: "0.6em 1.4em",
-            fontSize: "1.09em",
-            fontWeight: "bold",
-            cursor: "pointer",
-            marginTop: "1em",
-            textDecoration: "none",
-            width: 200,
-            minWidth: 200,
-            textAlign: "center",
-          }}
-        >
-          Per E-Mail senden
+<div style={{ display: "flex", gap: "18px", marginTop: 18, justifyContent: "center" }}>
+  <a
+    href={mailTo}
+    className="cta-btn"
+    style={{
+      display: "inline-block",
+      background: "#0053B3",
+      color: "#fff",
+      border: "none",
+      borderRadius: 6,
+      padding: "0.6em 1.4em",
+      fontSize: "1.07em",
+      fontWeight: "bold",
+      cursor: "pointer",
+      marginTop: "1em",
+      textDecoration: "none",
+      width: 200,
+      minWidth: 200,
+      textAlign: "center",
+    }}
+  >
+    per E-Mail senden
         </a>
       </div>
     </div>
