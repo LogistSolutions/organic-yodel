@@ -152,22 +152,16 @@ const totalPallets = quantities.reduce(
 
   const roundedPallets = Math.ceil(totalPallets);
 
-let kmRate = 1.75;
-const kmRateTable = config.preise?.kmRateTable ?? [
-  [1.75, 1.75, 1.75, 1.75, 1.75, 1.75], // Fallback-Default-Werte
-  [1.75, 1.75, 1.75, 1.75, 1.75, 1.75],
-  [1.75, 1.75, 1.75, 1.75, 1.75, 1.75],
-  [1.75, 1.75, 1.75, 1.75, 1.75, 1.75]
+// Neue kmRate anhand fester Staffelung
+const kmRateList = [
+  1.4, 1.65, 1.75, 2.4, 3.2, 3.2, 3.3, 3.4, 3.5, 3.5,
+  3.5, 3.5, 3.6, 3.6, 3.6, 3.6, 4.1, 4.1, 4.1, 4.1,
+  4.1, 4.2, 4.2, 4.25, 4.25
 ];
 
-if (roundedPallets <= 2) {
-  kmRate = kmRateTable[0][3];
-} else if (roundedPallets === 3) {
-  kmRate = kmRateTable[1][3];
-} else if (roundedPallets <= 6) {
-  kmRate = kmRateTable[2][3];
-} else {
-  kmRate = kmRateTable[3][3];
+let kmRate = 4.35; // Default für > 25 Paletten
+if (roundedPallets >= 1 && roundedPallets <= kmRateList.length) {
+  kmRate = kmRateList[roundedPallets - 1];
 }
 
 const kmValue = safeNum(km);
@@ -404,7 +398,37 @@ const getPdfHtml = () => {
             </tr>
           </tbody>
         </table>
-
+{/*
+// Tabelle zum anschauen der Kalkulation.
+<table className="result-table" style={{ marginTop: 20 }}>
+  <thead>
+    <tr>
+      <th>Component</th>
+      <th>Amount (€)</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Transport cost<br />
+        <small>{kmAdjusted} km × {kmRate.toFixed(2)} € + surcharge {zuschlag} €</small>
+      </td>
+      <td>{transportCost.toFixed(2)} €</td>
+    </tr>
+    <tr>
+      <td>Packaging material</td>
+      <td>{totalMaterial.toFixed(2)} €</td>
+    </tr>
+    <tr>
+      <td>Packaging time</td>
+      <td>{totalPackaging.toFixed(2)} €</td>
+    </tr>
+    <tr>
+      <td><b>Total</b></td>
+      <td><b>{total.toFixed(2)} €</b></td>
+    </tr>
+  </tbody>
+</table>
+*/}
         {showBanner && (
           <div className="banner-warning">
             Bei Palettenanzahl ab 26 erhalten Sie ein individuelles Angebot. Bitte senden Sie Ihre Anfrage per E-Mail an <a href="mailto:dispo@logist.de">dispo@logist.de</a>.

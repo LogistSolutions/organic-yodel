@@ -2,6 +2,7 @@ import AssetpreisKalkulator from '../../components/AssetpreisKalkulator';
 import Kalkulator2 from '../../components/Kalkulator2';
 import AssetpreisKalkulatorEN from '../../components/AssetpreisKalkulatorEN';
 import Kalkulator2EN from '../../components/Kalkulator2EN';
+import AssetpreisKalkulatorAdmin from '../../components/AssetpreisKalkulatorAdmin';
 import { notFound } from "next/navigation";
 import fs from "fs";
 import path from "path";
@@ -40,6 +41,9 @@ export default async function KalkulatorPage({ params, searchParams }: any) {
   }
   if (kalkId === "Kalkulator2EN") {
     return <Kalkulator2EN config={flatConfig} kundennummer={kundennummer} />;
+  }
+    if (kalkId === "KalkulatorAdmin") {
+    return <AssetpreisKalkulatorAdmin config={flatConfig} kundennummer={kundennummer} />;
   }
 
   return notFound();
