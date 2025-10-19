@@ -165,36 +165,21 @@ if (roundedPallets >= 1 && roundedPallets <= kmRateList.length) {
 }
 
 const kmValue = safeNum(km);
-// kmExtra nach Staffel
-function getKmExtra(kmValue) {
-  if (kmValue <= 50) return 130;
-  if (kmValue <= 100) return 100;
-  if (kmValue <= 200) return 85;
-  return 70; // ab 201
+// ---- DYNAMISCHER ZUSCHLAG NACH ENTFERNUNG ----
+let kmExtra = 70; // Standardwert ab 151 km
+if (kmValue <= 50) {
+  kmExtra = 130;
+} else if (kmValue <= 70) {
+  kmExtra = 115;
+} else if (kmValue <= 90) {
+  kmExtra = 100;
+} else if (kmValue <= 110) {
+  kmExtra = 85;
+} else if (kmValue <= 130) {
+  kmExtra = 75;
 }
 
-// Untergrenze = "letzter Wert der vorherigen Stufe"
-function getPrevBaselineAdjusted(kmValue) {
-  if (kmValue <= 50) {
-    // keine vorherige Stufe
-    return 0 + 130;     // optional 0+130 als Startbaseline
-  }
-  if (kmValue <= 100) {
-    return 50 + 130;    // letzter Punkt der 1. Stufe
-  }
-  if (kmValue <= 200) {
-    return 100 + 100;   // letzter Punkt der 2. Stufe
-  }
-  return 150 + 85;      // letzter Punkt der 3. Stufe
-}
-
-// Anwendung
-const kmValue = safeNum(km);
-const kmExtra = getKmExtra(kmValue);
-const rawAdjusted = kmValue + kmExtra;
-
-// verhindert Preisdip nach der Grenze:
-const kmAdjusted = Math.max(rawAdjusted, getPrevBaselineAdjusted(kmValue));
+const kmAdjusted = kmValue + kmExtra;
 
 // ----- NEUE ZUSCHLAG-LOGIK -----
 let zuschlag = 0;
