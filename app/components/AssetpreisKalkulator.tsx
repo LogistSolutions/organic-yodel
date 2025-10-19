@@ -169,14 +169,12 @@ const kmValue = safeNum(km);
 let kmExtra = 70; // Standardwert ab 151 km
 if (kmValue <= 50) {
   kmExtra = 130;
-} else if (kmValue <= 70) {
-  kmExtra = 115;
-} else if (kmValue <= 90) {
+} else if (kmValue <= 100) {
+  kmExtra = 120;
+} else if (kmValue <= 150) {
+  kmExtra = 110;
+} else if (kmValue <= 200) {
   kmExtra = 100;
-} else if (kmValue <= 110) {
-  kmExtra = 85;
-} else if (kmValue <= 130) {
-  kmExtra = 75;
 }
 
 const kmAdjusted = kmValue + kmExtra;
