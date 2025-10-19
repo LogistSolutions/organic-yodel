@@ -154,7 +154,7 @@ const totalPallets = quantities.reduce(
 
 // Neue kmRate anhand fester Staffelung
 const kmRateList = [
-  1.4, 1.65, 1.75, 2.4, 3.2, 3.2, 3.3, 3.4, 3.5, 3.5,
+  1.75, 1.75, 1.75, 2.7, 3.2, 3.2, 3.3, 3.4, 3.5, 3.5,
   3.5, 3.5, 3.6, 3.6, 3.6, 3.6, 4.1, 4.1, 4.1, 4.1,
   4.1, 4.2, 4.2, 4.25, 4.25
 ];
@@ -165,7 +165,16 @@ if (roundedPallets >= 1 && roundedPallets <= kmRateList.length) {
 }
 
 const kmValue = safeNum(km);
-const kmAdjusted = kmValue + 70;
+// ---- DYNAMISCHER ZUSCHLAG NACH ENTFERNUNG ----
+let kmExtra = 70;
+if (kmValue <= 50) {
+  kmExtra = 130;
+} else if (kmValue <= 100) {
+  kmExtra = 100;
+} else if (kmValue <= 150) {
+  kmExtra = 85;
+}
+const kmAdjusted = kmValue + kmExtra;
 
 // ----- NEUE ZUSCHLAG-LOGIK -----
 let zuschlag = 0;
