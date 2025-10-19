@@ -154,7 +154,7 @@ const totalPallets = quantities.reduce(
 
 // Neue kmRate anhand fester Staffelung
 const kmRateList = [
-  1.75, 1.75, 1.75, 2.7, 3.2, 3.2, 3.3, 3.4, 3.5, 3.5,
+  1.65, 1.75, 1.75, 2.7, 3.2, 3.2, 3.3, 3.4, 3.5, 3.5,
   3.5, 3.5, 3.6, 3.6, 3.6, 3.6, 4.1, 4.1, 4.1, 4.1,
   4.1, 4.2, 4.2, 4.25, 4.25
 ];
@@ -165,16 +165,36 @@ if (roundedPallets >= 1 && roundedPallets <= kmRateList.length) {
 }
 
 const kmValue = safeNum(km);
-// ---- DYNAMISCHER ZUSCHLAG NACH ENTFERNUNG ----
-let kmExtra = 70;
-if (kmValue <= 50) {
-  kmExtra = 130;
-} else if (kmValue <= 100) {
-  kmExtra = 100;
-} else if (kmValue <= 150) {
-  kmExtra = 85;
+// kmExtra nach Staffel
+function getKmExtra(kmValue) {
+  if (kmValue <= 50) return 130;
+  if (kmValue <= 100) return 100;
+  if (kmValue <= 200) return 85;
+  return 70; // ab 201
 }
-const kmAdjusted = kmValue + kmExtra;
+
+// Untergrenze = "letzter Wert der vorherigen Stufe"
+function getPrevBaselineAdjusted(kmValue) {
+  if (kmValue <= 50) {
+    // keine vorherige Stufe
+    return 0 + 130;     // optional 0+130 als Startbaseline
+  }
+  if (kmValue <= 100) {
+    return 50 + 130;    // letzter Punkt der 1. Stufe
+  }
+  if (kmValue <= 200) {
+    return 100 + 100;   // letzter Punkt der 2. Stufe
+  }
+  return 150 + 85;      // letzter Punkt der 3. Stufe
+}
+
+// Anwendung
+const kmValue = safeNum(km);
+const kmExtra = getKmExtra(kmValue);
+const rawAdjusted = kmValue + kmExtra;
+
+// verhindert Preisdip nach der Grenze:
+const kmAdjusted = Math.max(rawAdjusted, getPrevBaselineAdjusted(kmValue));
 
 // ----- NEUE ZUSCHLAG-LOGIK -----
 let zuschlag = 0;
