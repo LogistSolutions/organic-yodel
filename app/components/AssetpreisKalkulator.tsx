@@ -154,7 +154,7 @@ const totalPallets = quantities.reduce(
 
 // Neue kmRate anhand fester Staffelung
 const kmRateList = [
-  1.65, 1.75, 1.75, 2.7, 3.2, 3.2, 3.3, 3.4, 3.5, 3.5,
+  1.65, 1.75, 1.8, 2.7, 3.2, 3.2, 3.3, 3.4, 3.5, 3.5,
   3.5, 3.5, 3.6, 3.6, 3.6, 3.6, 4.1, 4.1, 4.1, 4.1,
   4.1, 4.2, 4.2, 4.25, 4.25
 ];
