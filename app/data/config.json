@@ -46,6 +46,47 @@
               [1.6, 1.7, 1.9, 2, 2.2, 2.5]
             ]
           }
+        },
+        {
+          "id": "Kalkulator2",
+          "bezeichnung": "Stueckpreis-Kalkulator",
+          "labels": [
+            "1-5kg (Dockings, Mobiles, Notebooks/Pads/ThinClients, Switch etc.)",
+            "5,1-11kg (TFTs, Desktops, Tischdrucker etc.)",
+            "11,1-25kg (Tower-PC/kl. Server, Drucker etc.)"
+          ],
+          "staffeln": [
+            [
+              { "von": 1, "bis": 10, "preis": 180, "art": "Pauschale" },
+              { "von": 11, "bis": 20, "preis": 210, "art": "Pauschale" },
+              { "von": 21, "bis": 50, "preis": 10, "art": "Stückpreis" },
+              { "von": 51, "bis": 100, "preis": 9, "art": "Stückpreis" },
+              { "von": 101, "bis": 200, "preis": 7, "art": "Stückpreis" },
+              { "von": 201, "bis": 300, "preis": 6, "art": "Stückpreis" },
+              { "von": 301, "bis": 400, "preis": 4, "art": "Stückpreis" },
+              { "von": 401, "bis": 700, "preis": 2.5, "art": "Stückpreis" }
+            ],
+            [
+              { "von": 1, "bis": 10, "preis": 220, "art": "Pauschale" },
+              { "von": 11, "bis": 20, "preis": 270, "art": "Pauschale" },
+              { "von": 21, "bis": 50, "preis": 11, "art": "Stückpreis" },
+              { "von": 51, "bis": 100, "preis": 10, "art": "Stückpreis" },
+              { "von": 101, "bis": 200, "preis": 8, "art": "Stückpreis" },
+              { "von": 201, "bis": 300, "preis": 6.5, "art": "Stückpreis" },
+              { "von": 301, "bis": 400, "preis": 4.5, "art": "Stückpreis" },
+              { "von": 401, "bis": 700, "preis": 3, "art": "Stückpreis" }
+            ],
+            [
+              { "von": 1, "bis": 10, "preis": 250, "art": "Pauschale" },
+              { "von": 11, "bis": 20, "preis": 320, "art": "Pauschale" },
+              { "von": 21, "bis": 50, "preis": 13, "art": "Stückpreis" },
+              { "von": 51, "bis": 100, "preis": 11, "art": "Stückpreis" },
+              { "von": 101, "bis": 200, "preis": 9, "art": "Stückpreis" },
+              { "von": 201, "bis": 300, "preis": 8, "art": "Stückpreis" },
+              { "von": 301, "bis": 400, "preis": 7, "art": "Stückpreis" },
+              { "von": 401, "bis": 700, "preis": 5.5, "art": "Stückpreis" }
+            ]
+          ]
         }
       ]
     },
