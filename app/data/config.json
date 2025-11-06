@@ -17,11 +17,11 @@
       },
       "lieferadresse_abweichend": false,
       "lieferadresse": {
-        "firmenname": "Green IT Services GmbH",
-        "strasse": "Dr. Adolf-Schneider-Str. 23/1",
-        "plz": "73479",
-        "ort": "Ellwangen",
-        "land": "Deutschland"
+        "firmenname": "Other Place",
+        "strasse": "Different Road 23/1",
+        "plz": "75555",
+        "ort": "City",
+        "land": "Germany"
       },
       "kalkulatoren": [
         {
