@@ -131,7 +131,8 @@ const [zieladresse, setZieladresse] = useState<Adresse>(
   };
 
   // Hilfsfunktionen
-  const safeNum = (v: number | "") => (typeof v === "number" && !isNaN(v) ? v : 0);
+ const safeNum = (v: number | "" | undefined | null) =>
+  typeof v === "number" && !isNaN(v) ? v : 0;
 
   const totalQuantity = quantities.reduce(
     (acc: number, val) => acc + safeNum(val),

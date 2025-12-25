@@ -3,6 +3,8 @@ import Kalkulator2 from '../../components/Kalkulator2';
 import AssetpreisKalkulatorEN from '../../components/AssetpreisKalkulatorEN';
 import Kalkulator2EN from '../../components/Kalkulator2EN';
 import AssetpreisKalkulatorAdmin from '../../components/AssetpreisKalkulatorAdmin';
+import GreenIT from '../../components/GreenIT';
+import GreenIT_externeKunden from '../../components/GreenIT_externeKunden';
 import { notFound } from "next/navigation";
 import fs from "fs";
 import path from "path";
@@ -28,8 +30,14 @@ export default async function KalkulatorPage({ params, searchParams }: any) {
 
   // ❌ Statt mergedConfig…
   // ✅ ...baue die korrekte Config aus Kalkulator + Kunde
-  const flatConfig = buildKalkulatorConfig(kundeConfig, kalkId);
 
+  const flatConfig = buildKalkulatorConfig(kundeConfig, kalkId);
+  if (kalkId === "GreenIT") {
+    return <GreenIT config={flatConfig} kundennummer={kundennummer} />;
+  }
+  if (kalkId === "GreenIT_externeKunden") {
+    return <GreenIT_externeKunden config={flatConfig} kundennummer={kundennummer} />;
+  }
   if (kalkId === "Kalkulator") {
     return <AssetpreisKalkulator config={flatConfig} kundennummer={kundennummer} />;
   }

@@ -22,7 +22,7 @@ type Props = { config: KundeConfig; kundennummer: string };
 
 // Einstellungen
 const MAX_ROWS = 3;
-const MAX_MENGE = 700;
+const MAX_MENGE = 1200;
 
 // ===== PDF-Download-Button =====
 function PdfDownloadButton({ getPdfHtml }: { getPdfHtml: () => string }) {
@@ -381,7 +381,7 @@ export default function StueckpreisKalkulator({ config, kundennummer }: Props) {
                     value={quantities[idx]}
                     onChange={e => handleMengeChange(idx, e.target.value)}
                     style={{
-                      width: 60, fontWeight: 700, fontSize: "0.70em",
+                      width: 90, fontWeight: 700, fontSize: "0.70em",
                       textAlign: "right", background: "#f6fafc", border: "1.1px solid #e0e7f6",
                       borderRadius: 8, letterSpacing: "0.07em"
                     }}
@@ -417,7 +417,7 @@ export default function StueckpreisKalkulator({ config, kundennummer }: Props) {
           background: "#fff3f3", color: "#be2d2d", padding: "10px 16px", borderRadius: 7,
           marginBottom: 16, fontWeight: 600, textAlign: "center"
         }}>
-          Maximal 700 Stück insgesamt erlaubt!
+          Maximal 1200 Stück insgesamt erlaubt!
         </div>
       )}
       {/* Durchschnittlicher Stückpreis */}
