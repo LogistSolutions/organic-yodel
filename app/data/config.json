@@ -64,7 +64,7 @@
               { "von": 101, "bis": 200, "preis": 7, "art": "Stückpreis" },
               { "von": 201, "bis": 300, "preis": 6, "art": "Stückpreis" },
               { "von": 301, "bis": 400, "preis": 4, "art": "Stückpreis" },
-              { "von": 401, "bis": 700, "preis": 2.5, "art": "Stückpreis" }
+              { "von": 401, "bis": 1200, "preis": 2.5, "art": "Stückpreis" }
             ],
             [
               { "von": 1, "bis": 10, "preis": 220, "art": "Pauschale" },
@@ -74,7 +74,7 @@
               { "von": 101, "bis": 200, "preis": 8, "art": "Stückpreis" },
               { "von": 201, "bis": 300, "preis": 6.5, "art": "Stückpreis" },
               { "von": 301, "bis": 400, "preis": 4.5, "art": "Stückpreis" },
-              { "von": 401, "bis": 700, "preis": 3, "art": "Stückpreis" }
+              { "von": 401, "bis": 1200, "preis": 3, "art": "Stückpreis" }
             ],
             [
               { "von": 1, "bis": 10, "preis": 250, "art": "Pauschale" },
@@ -84,7 +84,7 @@
               { "von": 101, "bis": 200, "preis": 9, "art": "Stückpreis" },
               { "von": 201, "bis": 300, "preis": 8, "art": "Stückpreis" },
               { "von": 301, "bis": 400, "preis": 7, "art": "Stückpreis" },
-              { "von": 401, "bis": 700, "preis": 5.5, "art": "Stückpreis" }
+              { "von": 401, "bis": 1200, "preis": 5.5, "art": "Stückpreis" }
             ]
           ]
         }
@@ -252,7 +252,7 @@
               { "von": 101, "bis": 200, "preis": 7, "art": "Stückpreis" },
               { "von": 201, "bis": 300, "preis": 6, "art": "Stückpreis" },
               { "von": 301, "bis": 400, "preis": 4, "art": "Stückpreis" },
-              { "von": 401, "bis": 700, "preis": 2.5, "art": "Stückpreis" }
+              { "von": 401, "bis": 1200, "preis": 2.5, "art": "Stückpreis" }
             ],
             [
               { "von": 1, "bis": 10, "preis": 220, "art": "Pauschale" },
@@ -262,7 +262,7 @@
               { "von": 101, "bis": 200, "preis": 8, "art": "Stückpreis" },
               { "von": 201, "bis": 300, "preis": 6.5, "art": "Stückpreis" },
               { "von": 301, "bis": 400, "preis": 4.5, "art": "Stückpreis" },
-              { "von": 401, "bis": 700, "preis": 3, "art": "Stückpreis" }
+              { "von": 401, "bis": 1200, "preis": 3, "art": "Stückpreis" }
             ],
             [
               { "von": 1, "bis": 10, "preis": 250, "art": "Pauschale" },
@@ -272,7 +272,7 @@
               { "von": 101, "bis": 200, "preis": 9, "art": "Stückpreis" },
               { "von": 201, "bis": 300, "preis": 8, "art": "Stückpreis" },
               { "von": 301, "bis": 400, "preis": 7, "art": "Stückpreis" },
-              { "von": 401, "bis": 700, "preis": 5.5, "art": "Stückpreis" }
+              { "von": 401, "bis": 1200, "preis": 5.5, "art": "Stückpreis" }
             ]
           ]
         }
@@ -440,7 +440,7 @@
               { "von": 101, "bis": 200, "preis": 7, "art": "Stückpreis" },
               { "von": 201, "bis": 300, "preis": 6, "art": "Stückpreis" },
               { "von": 301, "bis": 400, "preis": 4, "art": "Stückpreis" },
-              { "von": 401, "bis": 700, "preis": 2.5, "art": "Stückpreis" }
+              { "von": 401, "bis": 1200, "preis": 2.5, "art": "Stückpreis" }
             ],
             [
               { "von": 1, "bis": 10, "preis": 220, "art": "Pauschale" },
@@ -450,7 +450,7 @@
               { "von": 101, "bis": 200, "preis": 8, "art": "Stückpreis" },
               { "von": 201, "bis": 300, "preis": 6.5, "art": "Stückpreis" },
               { "von": 301, "bis": 400, "preis": 4.5, "art": "Stückpreis" },
-              { "von": 401, "bis": 700, "preis": 3, "art": "Stückpreis" }
+              { "von": 401, "bis": 1200, "preis": 3, "art": "Stückpreis" }
             ],
             [
               { "von": 1, "bis": 10, "preis": 250, "art": "Pauschale" },
@@ -460,7 +460,7 @@
               { "von": 101, "bis": 200, "preis": 9, "art": "Stückpreis" },
               { "von": 201, "bis": 300, "preis": 8, "art": "Stückpreis" },
               { "von": 301, "bis": 400, "preis": 7, "art": "Stückpreis" },
-              { "von": 401, "bis": 700, "preis": 5.5, "art": "Stückpreis" }
+              { "von": 401, "bis": 1200, "preis": 5.5, "art": "Stückpreis" }
             ]
           ]
         }
@@ -531,7 +531,7 @@
               { "von": 101, "bis": 200, "preis": 7, "art": "Stückpreis" },
               { "von": 201, "bis": 300, "preis": 6, "art": "Stückpreis" },
               { "von": 301, "bis": 400, "preis": 4, "art": "Stückpreis" },
-              { "von": 401, "bis": 700, "preis": 2.5, "art": "Stückpreis" }
+              { "von": 401, "bis": 1200, "preis": 2.5, "art": "Stückpreis" }
             ],
             [
               { "von": 1, "bis": 10, "preis": 220, "art": "Pauschale" },
@@ -541,7 +541,7 @@
               { "von": 101, "bis": 200, "preis": 8, "art": "Stückpreis" },
               { "von": 201, "bis": 300, "preis": 6.5, "art": "Stückpreis" },
               { "von": 301, "bis": 400, "preis": 4.5, "art": "Stückpreis" },
-              { "von": 401, "bis": 700, "preis": 3, "art": "Stückpreis" }
+              { "von": 401, "bis": 1200, "preis": 3, "art": "Stückpreis" }
             ],
             [
               { "von": 1, "bis": 10, "preis": 250, "art": "Pauschale" },
@@ -551,7 +551,7 @@
               { "von": 101, "bis": 200, "preis": 9, "art": "Stückpreis" },
               { "von": 201, "bis": 300, "preis": 8, "art": "Stückpreis" },
               { "von": 301, "bis": 400, "preis": 7, "art": "Stückpreis" },
-              { "von": 401, "bis": 700, "preis": 5.5, "art": "Stückpreis" }
+              { "von": 401, "bis": 1200, "preis": 5.5, "art": "Stückpreis" }
             ]
           ]
         }
@@ -621,7 +621,7 @@
               { "von": 101, "bis": 200, "preis": 7, "art": "Stückpreis" },
               { "von": 201, "bis": 300, "preis": 6, "art": "Stückpreis" },
               { "von": 301, "bis": 400, "preis": 4, "art": "Stückpreis" },
-              { "von": 401, "bis": 700, "preis": 2.5, "art": "Stückpreis" }
+              { "von": 401, "bis": 1200, "preis": 2.5, "art": "Stückpreis" }
             ],
             [
               { "von": 1, "bis": 10, "preis": 220, "art": "Pauschale" },
@@ -631,7 +631,7 @@
               { "von": 101, "bis": 200, "preis": 8, "art": "Stückpreis" },
               { "von": 201, "bis": 300, "preis": 6.5, "art": "Stückpreis" },
               { "von": 301, "bis": 400, "preis": 4.5, "art": "Stückpreis" },
-              { "von": 401, "bis": 700, "preis": 3, "art": "Stückpreis" }
+              { "von": 401, "bis": 1200, "preis": 3, "art": "Stückpreis" }
             ],
             [
               { "von": 1, "bis": 10, "preis": 250, "art": "Pauschale" },
@@ -641,7 +641,7 @@
               { "von": 101, "bis": 200, "preis": 9, "art": "Stückpreis" },
               { "von": 201, "bis": 300, "preis": 8, "art": "Stückpreis" },
               { "von": 301, "bis": 400, "preis": 7, "art": "Stückpreis" },
-              { "von": 401, "bis": 700, "preis": 5.5, "art": "Stückpreis" }
+              { "von": 401, "bis": 1200, "preis": 5.5, "art": "Stückpreis" }
             ]
           ]
         }

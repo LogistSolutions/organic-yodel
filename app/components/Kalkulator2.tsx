@@ -143,12 +143,7 @@ export default function StueckpreisKalkulator({ config, kundennummer }: Props) {
     setWarnung(totalMenge > MAX_MENGE);
   }, [totalMenge]);
 
-  // --- Staffelinfos je Kategorie (immer nach Gesamtmenge suchen!) ---
-  const staffelInfos = labels.map((_, idx) => {
-    const menge = quantities[idx];
-    if (!menge || typeof menge !== "number" || menge === 0) return null;
-    const staffel = staffeln[idx];
-// --- Staffelinfos je Kategorie (immer nach Gesamtmenge suchen!) ---
+ // --- Staffelinfos je Kategorie (immer nach Gesamtmenge suchen!) ---
 const staffelInfos = labels.map((_, idx) => {
   const menge = quantities[idx];
   if (!menge || typeof menge !== "number" || menge === 0) return null;
@@ -156,26 +151,16 @@ const staffelInfos = labels.map((_, idx) => {
   const staffel = staffeln[idx];
   if (!Array.isArray(staffel) || staffel.length === 0) return null;
 
-  // 1) Normalfall: Staffel passt
+  // 1) Normalfall: passende Staffel
   const hit = staffel.find(st => totalMenge >= st.von && totalMenge <= st.bis);
   if (hit) return hit;
 
   // 2) Fallback: über Maximum -> letzte Staffel weiterverwenden
-  const maxBis = Math.max(...staffel.map(s => s.bis));
-  if (totalMenge > maxBis) {
-    return staffel.reduce((a, b) => (b.bis > a.bis ? b : a));
-  }
-
-  // Optional: unter Minimum -> erste Staffel (meist nicht nötig)
-  // const minVon = Math.min(...staffel.map(s => s.von));
-  // if (totalMenge < minVon) {
-  //   return staffel.reduce((a, b) => (b.von < a.von ? b : a));
-  // }
+  const last = staffel.reduce((a, b) => (b.bis > a.bis ? b : a));
+  if (totalMenge > last.bis) return last;
 
   return null;
 });
-  });
-
   // --- Korrekte Kalkulation: Nur höchste Pauschale, Rest wie Stückpreis ---
   let maxPauschale = 0;
   let pauschaleIdx = -1;
