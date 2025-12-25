@@ -148,8 +148,32 @@ export default function StueckpreisKalkulator({ config, kundennummer }: Props) {
     const menge = quantities[idx];
     if (!menge || typeof menge !== "number" || menge === 0) return null;
     const staffel = staffeln[idx];
-    const s = staffel.find(st => totalMenge >= st.von && totalMenge <= st.bis);
-    return s || null;
+// --- Staffelinfos je Kategorie (immer nach Gesamtmenge suchen!) ---
+const staffelInfos = labels.map((_, idx) => {
+  const menge = quantities[idx];
+  if (!menge || typeof menge !== "number" || menge === 0) return null;
+
+  const staffel = staffeln[idx];
+  if (!Array.isArray(staffel) || staffel.length === 0) return null;
+
+  // 1) Normalfall: Staffel passt
+  const hit = staffel.find(st => totalMenge >= st.von && totalMenge <= st.bis);
+  if (hit) return hit;
+
+  // 2) Fallback: über Maximum -> letzte Staffel weiterverwenden
+  const maxBis = Math.max(...staffel.map(s => s.bis));
+  if (totalMenge > maxBis) {
+    return staffel.reduce((a, b) => (b.bis > a.bis ? b : a));
+  }
+
+  // Optional: unter Minimum -> erste Staffel (meist nicht nötig)
+  // const minVon = Math.min(...staffel.map(s => s.von));
+  // if (totalMenge < minVon) {
+  //   return staffel.reduce((a, b) => (b.von < a.von ? b : a));
+  // }
+
+  return null;
+});
   });
 
   // --- Korrekte Kalkulation: Nur höchste Pauschale, Rest wie Stückpreis ---
