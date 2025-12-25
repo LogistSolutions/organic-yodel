@@ -401,7 +401,7 @@
       },
       "kalkulatoren": [
         {
-          "id": "KalkulatorEN",
+          "id": "Kalkulator",
           "bezeichnung": "Calculator Assets sealed",
           "labels": [
             "0–1 kg (Mobiles/Accesspoints/Phones/Dockings etc.)",
@@ -424,7 +424,7 @@
           }
         },
         {
-          "id": "Kalkulator2EN",
+          "id": "Kalkulator2",
           "bezeichnung": "Unit Price Calculator",
           "labels": [
             "1-5kg (Dockings, Mobiles, Notebooks/Pads/ThinClients,Switch etc.)",
@@ -492,8 +492,8 @@
       },
       "kalkulatoren": [
         {
-          "id": "KalkulatorEN",
-          "bezeichnung": "Calculator Assets sealed",
+          "id": "Kalkulator",
+          "bezeichnung": "Kalkulator Assets verplombt",
           "labels": [
             "0–1 kg (Mobiles/Accesspoints/Phones/Dockings etc.)",
             "1–3 kg (Notebooks/Pads/ThinClients etc.)",
@@ -515,8 +515,8 @@
           }
         },
         {
-          "id": "Kalkulator2EN",
-          "bezeichnung": "Unit Price Calculator",
+          "id": "Kalkulator",
+          "bezeichnung": "Stueckpreis-Kalkulator",
           "labels": [
             "1-5kg (Dockings, Mobiles, Notebooks/Pads/ThinClients,Switch etc.)",
             "5,1-11kg (TFTs, Desktops, Tableprinters etc.)",
