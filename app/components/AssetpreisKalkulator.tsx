@@ -155,12 +155,12 @@ const totalPallets = quantities.reduce(
 
 // Neue kmRate anhand fester Staffelung
 const kmRateList = [
-  1.65, 1.75, 1.8, 2.7, 3.2, 3.2, 3.3, 3.4, 3.5, 3.5,
-  3.5, 3.5, 3.6, 3.6, 3.6, 3.6, 4.1, 4.1, 4.1, 4.1,
-  4.1, 4.2, 4.2, 4.25, 4.25
+  1.71, 1.82, 1.86, 2.85, 3.31, 3.35, 3.44, 3.52, 3.63, 3.63,
+  3.63, 3.63, 3.75, 3.75, 3.75, 3.75, 4.3, 4.3, 4.3, 4.3,
+  4.3, 4.45, 4.45, 4.6, 4.6
 ];
 
-let kmRate = 4.35; // Default für > 25 Paletten
+let kmRate = 4.8; // Default für > 25 Paletten
 if (roundedPallets >= 1 && roundedPallets <= kmRateList.length) {
   kmRate = kmRateList[roundedPallets - 1];
 }
