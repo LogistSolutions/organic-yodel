@@ -224,7 +224,7 @@
             "20,1–30 kg (Drucker/Server etc.)"
           ],
           "palletUnits": [250, 170, 65, 28, 20, 14],
-          "packagingMaterial": [0.1, 0.12, 0.14, 0.15, 0.15, 0.2],
+          "packagingMaterial": [0.8, 1.12, 1.64, 2.15, 2.65, 2.7],
           "packagingTime": [0.25, 0.35, 0.5, 0.6, 0.75, 1],
           "preise": {
             "kmRateTable": [
