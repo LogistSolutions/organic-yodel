@@ -245,34 +245,34 @@
           ],
           "staffeln": [
             [
-              { "von": 1, "bis": 10, "preis": 180, "art": "Pauschale" },
-              { "von": 11, "bis": 20, "preis": 210, "art": "Pauschale" },
-              { "von": 21, "bis": 50, "preis": 10, "art": "Stückpreis" },
-              { "von": 51, "bis": 100, "preis": 9, "art": "Stückpreis" },
-              { "von": 101, "bis": 200, "preis": 7, "art": "Stückpreis" },
-              { "von": 201, "bis": 300, "preis": 6, "art": "Stückpreis" },
-              { "von": 301, "bis": 400, "preis": 4, "art": "Stückpreis" },
-              { "von": 401, "bis": 1200, "preis": 2.5, "art": "Stückpreis" }
+              { "von": 1, "bis": 10, "preis": 186.3, "art": "Pauschale" },
+              { "von": 11, "bis": 20, "preis": 217.5, "art": "Pauschale" },
+              { "von": 21, "bis": 50, "preis": 10.35, "art": "Stückpreis" },
+              { "von": 51, "bis": 100, "preis": 9.35, "art": "Stückpreis" },
+              { "von": 101, "bis": 200, "preis": 7.25, "art": "Stückpreis" },
+              { "von": 201, "bis": 300, "preis": 6.2, "art": "Stückpreis" },
+              { "von": 301, "bis": 400, "preis": 4.15, "art": "Stückpreis" },
+              { "von": 401, "bis": 1200, "preis": 2.6, "art": "Stückpreis" }
             ],
             [
-              { "von": 1, "bis": 10, "preis": 220, "art": "Pauschale" },
-              { "von": 11, "bis": 20, "preis": 270, "art": "Pauschale" },
-              { "von": 21, "bis": 50, "preis": 11, "art": "Stückpreis" },
-              { "von": 51, "bis": 100, "preis": 10, "art": "Stückpreis" },
-              { "von": 101, "bis": 200, "preis": 8, "art": "Stückpreis" },
-              { "von": 201, "bis": 300, "preis": 6.5, "art": "Stückpreis" },
-              { "von": 301, "bis": 400, "preis": 4.5, "art": "Stückpreis" },
-              { "von": 401, "bis": 1200, "preis": 3, "art": "Stückpreis" }
+              { "von": 1, "bis": 10, "preis": 228, "art": "Pauschale" },
+              { "von": 11, "bis": 20, "preis": 279.5, "art": "Pauschale" },
+              { "von": 21, "bis": 50, "preis": 11.4, "art": "Stückpreis" },
+              { "von": 51, "bis": 100, "preis": 10.35, "art": "Stückpreis" },
+              { "von": 101, "bis": 200, "preis": 8.3, "art": "Stückpreis" },
+              { "von": 201, "bis": 300, "preis": 6.75, "art": "Stückpreis" },
+              { "von": 301, "bis": 400, "preis": 4.7, "art": "Stückpreis" },
+              { "von": 401, "bis": 1200, "preis": 3.1, "art": "Stückpreis" }
             ],
             [
-              { "von": 1, "bis": 10, "preis": 250, "art": "Pauschale" },
-              { "von": 11, "bis": 20, "preis": 320, "art": "Pauschale" },
-              { "von": 21, "bis": 50, "preis": 13, "art": "Stückpreis" },
-              { "von": 51, "bis": 100, "preis": 11, "art": "Stückpreis" },
-              { "von": 101, "bis": 200, "preis": 9, "art": "Stückpreis" },
-              { "von": 201, "bis": 300, "preis": 8, "art": "Stückpreis" },
-              { "von": 301, "bis": 400, "preis": 7, "art": "Stückpreis" },
-              { "von": 401, "bis": 1200, "preis": 5.5, "art": "Stückpreis" }
+              { "von": 1, "bis": 10, "preis": 259, "art": "Pauschale" },
+              { "von": 11, "bis": 20, "preis": 331.2, "art": "Pauschale" },
+              { "von": 21, "bis": 50, "preis": 13.5, "art": "Stückpreis" },
+              { "von": 51, "bis": 100, "preis": 11.4, "art": "Stückpreis" },
+              { "von": 101, "bis": 200, "preis": 9.3, "art": "Stückpreis" },
+              { "von": 201, "bis": 300, "preis": 8.3, "art": "Stückpreis" },
+              { "von": 301, "bis": 400, "preis": 7.25, "art": "Stückpreis" },
+              { "von": 401, "bis": 1200, "preis": 5.7, "art": "Stückpreis" }
             ]
           ]
         }
